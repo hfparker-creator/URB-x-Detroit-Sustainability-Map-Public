@@ -1,0 +1,147 @@
+Resource Title,Source info (literally any way to trace this back + confirm it's real),X-Coordinate,Y-Coordinate
+QLINE,,,
+Grand Blvd Station,https://detroitdata.org/dataset/qline-stops,-83.07314336,42.37001424
+Baltimore St Station,https://detroitdata.org/dataset/qline-stops,-83.07196614,42.36828724
+Amsterdam Station,https://detroitdata.org/dataset/qline-stops,-83.07080451,42.36645768
+Ferry Station (South),https://detroitdata.org/dataset/qline-stops,-83.06740861,42.36122512
+Ferry Station (North),https://detroitdata.org/dataset/qline-stops,-83.06671071,42.36073289
+Warren Station (North),https://detroitdata.org/dataset/qline-stops,-83.06434654,42.35735425
+Warren Station (South),https://detroitdata.org/dataset/qline-stops,-83.06418756,42.3563281
+Canfield Station (North),https://detroitdata.org/dataset/qline-stops,-83.06116776,42.35267719
+Canfield Station (South),https://detroitdata.org/dataset/qline-stops,-83.06159285,42.35250289
+MLK Jr Station (North),https://detroitdata.org/dataset/qline-stops,-83.05753458,42.34731235
+MLK Jr Station (South),https://detroitdata.org/dataset/qline-stops,-83.0579813,42.34706367
+Sproat Station,https://detroitdata.org/dataset/qline-stops,-83.05448688,42.34195427
+Adelaide Station,https://detroitdata.org/dataset/qline-stops,-83.05343954,42.34111735
+Grand Circus Station (South),https://detroitdata.org/dataset/qline-stops,-83.05093811,42.33668227
+Grand Circus Station (North),https://detroitdata.org/dataset/qline-stops,-83.05049398,42.33684873
+Foxtown Station (South),https://detroitdata.org/dataset/qline-stops,-83.05243121,42.33902201
+Foxtown Station (North),https://detroitdata.org/dataset/qline-stops,-83.0521239,42.33914629
+Campus Martius Station (South),https://detroitdata.org/dataset/qline-stops,-83.04736257,42.33209594
+Campus Martius Station (North),https://detroitdata.org/dataset/qline-stops,-83.04727691,42.33247666
+Congress Station,https://detroitdata.org/dataset/qline-stops,-83.04549646,42.32963075
+,,,
+Detroit People Mover,,,
+Grand Circus Park Station,https://www.thepeoplemover.com/stations-guide,-83.05060378,42.33580437
+Times Square Station,https://www.thepeoplemover.com/stations-guide,-83.05216309,42.3335867
+Michigan Station,https://www.thepeoplemover.com/stations-guide,-83.05212395,42.33137114
+Fort Cass Station,https://www.thepeoplemover.com/stations-guide,-83.05115436,42.32951329
+Huntington Place Station,https://www.thepeoplemover.com/stations-guide,-83.04985037,42.32821965
+Water Square Station,https://www.thepeoplemover.com/stations-guide,-83.05267483,42.32524068
+Financial District Station,https://www.thepeoplemover.com/stations-guide,-83.04669531,42.32868858
+Millender Center Station,https://www.thepeoplemover.com/stations-guide,-83.04200504,42.33028156
+Renaissance Center Station,https://www.thepeoplemover.com/stations-guide,-83.03998705,42.3301649
+Bricktown Station,https://www.thepeoplemover.com/stations-guide,-83.0411981,42.33333429
+Greektown Station,https://www.thepeoplemover.com/stations-guide,-83.04242335,42.33462534
+Cadillac Center Station,https://www.thepeoplemover.com/stations-guide,-83.0461613,42.33371809
+Broadway Station,https://www.thepeoplemover.com/stations-guide,-83.04821676,42.33545706
+,,,
+MoGo Charging Docks,,,
+Rosa Parks Transit Center,https://mogodetroit.org/maps/system-map/,42.331377,-83.052241
+Wabash St & Michigan Ave,,42.331483,-83.07511
+Second Ave & Prentis St,,42.352103,-83.06719
+Second Ave & Burroughs St,,42.363611,-83.073889
+Trumbull Ave & Warren Ave,,42.351661,-83.078617
+Farnsworth St & John R St,,42.358796,-83.063289
+Wilkins St & Russell St,,42.349284,-83.042033
+Gratiot Ave & Russell St,,42.343235,-83.039169
+E Lafayette St & Orleans St,,42.338747,-83.031401
+Atwater St & Orleans St,,42.333295,-83.026139
+Second Ave & W Grand Blvd,,42.368729,-83.076507
+Larned St & Woodward Ave,,42.329541,-83.044799
+Wight St & Mt Elliott,,42.341574,-83.008904
+Jos Campau & Guoin St,,42.337004,-83.018008
+WDIV & W Lafayette Blvd,,42.329228,-83.054109
+Ren Cen Plaza & Detroit Riverwalk,,42.328245,-83.037643
+Beaubien St & E Lafayette St,,42.333757,-83.041463
+Woodward Ave & W Fort St,,42.330612,-83.046379
+Huntington Place-Washington & W Congress,,42.328275,-83.049112
+Capitol Park - Griswold St & State St,,42.332628,-83.048927
+Brush St & Madison St,,42.337627,-83.045491
+Grand Circus Park - West,,42.336657,-83.05039
+20th St & Bagley St,,42.324627,-83.080853
+W Vernor Hwy & Scotten Ave,,42.3212,-83.0933
+W McNichols Rd & Prairie St,,42.417137,-83.144901
+Woodward Ave & Temple St,,42.342961,-83.055158
+Woodward Ave & Peterboro St,,42.3451,-83.0564
+Mack Ave & John R St,,42.348341,-83.056257
+Second Ave & Selden St,,42.34742,-83.06468
+W Willis St & Cass Ave,,42.350376,-83.063722
+DMC - John R St & E Canfield St,,42.353462,-83.059067
+Cass Ave & W Hancock St,,42.354992,-83.066153
+WSU - W Kirby & Third Ave,,42.3581,-83.073
+WSU - Cass Ave & Gilmour Mall,,42.360321,-83.06936
+Henry Ford Hospital,,42.366325,-83.084342
+Kirby St & Woodward Ave,,42.359573,-83.066906
+Bagley St & Plaza Dr,,42.332632,-83.057053
+Brooklyn St & Michigan Ave,,42.331762,-83.063962
+Paradise Valley - Gratiot Ave & Randolph St,,42.336036,-83.046064
+WCCC - W Fort St,,42.32716,-83.055265
+E Bethune St & Brush St,,42.374231,-83.069759
+Agnes St & Parker St,,42.355351,-82.996276
+Dequindre Cut Freight Yard,,42.350015,-83.037746
+Rosa Parks Blvd & Michigan Ave,,42.331069,-83.071774
+Huntington Woods Rec. Center,,42.48492,-83.17403
+Earlmont Rd & Coolidge Hwy,,42.50043,-83.18358
+Robina Ave & W Twelve Mile Rd,,42.50288,-83.18921
+Coolidge Hwy & Lincoln St,,42.48105,-83.1831
+Lincoln St & Greenfield Rd,,42.48122,-83.2014
+Gardner St & W Eleven Mile Rd,,42.488158,-83.190037
+W Nine Mile Rd & Manistee St,,42.45995,-83.16629
+Oak Park Blvd & Parklawn St,,42.46585,-83.18742
+Livernois & Ferndale Project,,42.45047,-83.14264
+Geary Park,,42.462273,-83.152526
+E Nine Mile Rd & Wanda St,,42.461,-83.11311
+Martin Road Park - Orchard Ave & Martin Rd,,42.46496,-83.113628
+Woodward Heights Blvd & Wolcott St,,42.46837,-83.12735
+W Nine Mile Rd & Woodward Ave,,42.46053,-83.13516
+E Nine Mile Rd & City Hall,,42.46059,-83.13107
+S Washington Ave & W Lincoln Ave,,42.48361,-83.14633
+S Washington Ave & W 4th St,,42.487401,-83.146719
+Kayser Ave & E 4th St,,42.48723,-83.13695
+N Main St & Gardenia Ave,,42.49778,-83.14443
+S Troy St & E 2nd St,,42.48915,-83.14183
+S Main St & E Kenilworth Ave,,42.47887,-83.14375
+Livernois & Chesterfield Rd,,42.435031,-83.141552
+Livernois & Norfolk St,,42.443628,-83.141863
+Merrill Plaisance St & Woodward Ave,,42.41988,-83.10737
+Livernois & Florence St,,42.412607,-83.140453
+Joe Louis Greenway & Warren Ave,,42.345462,-83.147775
+W Seven Mile Rd & Woodward Ave,,42.431991,-83.115741
+Belle Isle Beach,,42.342841,-82.979365
+Belle Isle Casino,,42.336095,-82.995145
+Belle Isle Conservatory,,42.337242,-82.98608
+Bagley St & 14th St,,42.326608,-83.073557
+E Grand Blvd & Brush St,,42.371967,-83.068081
+Kenilworth St & John R St,,42.38551,-83.079944
+14th St & Dalzelle St,,42.328984,-83.075365
+Euclid St & Woodward Ave,,42.37735,-83.077784
+MacArthur Bridge & Gabriel Richard Park,,42.346308,-83.000967
+Michigan Central,,42.328356,-83.076579
+,,,
+Bike Routes,,,
+"https://www.google.com/maps/@42.412106,-83.090382,11z/data=!5m1!1e3?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D",,,
+,,,
+EV Chargers,,,
+EVgo - Renaissance Center,,42.3294,-83.0399
+EVgo - Meijer,,42.4459,-83.1317
+Tesla - Supercharger,,42.4461,-83.1312
+Tesla - Atheneum Suite Hotel,,42.3357,-83.0412
+Tesla - Roostertail,,42.3528,-82.9955
+Tesla - Z Deck EFF,,42.3356,-83.0477
+ChargePoint - First National Garage,,42.3328,-83.0417
+ChargePoint - Premier Parking Bricktown Garage,,42.3341,-83.041
+ChargePoint - One Campus Martius Garage,,42.3348,-83.046
+ChargePoint - The Z Deck,,42.3358,-83.0452
+ChargePoint - E Congress St,,42.3316,-83.043
+ChargePoint - DIA Museum,,42.3594,-83.064
+,,,
+Bus Stops,,,
+literally thousands of data points,,,
+,,,
+Transit Centers,,,
+Rosa Parks Transit Center,https://detroitmi.gov/departments/detroit-department-transportation,42.332497,-83.052862
+Jason Hargrove Transit Center,https://detroitmi.gov/departments/detroit-department-transportation/jason-hargrove-transit-center,42.44333,-83.116811
+Detroit Amtrak Station (DET),https://www.amtrak.com/stations/det,42.367751,-83.072425
+Grand Circus Park,https://downtowndetroit.org/experience-downtown/downtown-detroit-parks/grand-circus-park/,42.335865,-83.050319
+Bagley Mobility Hub,https://michigancentral.com/development/,42.326371,-83.072853
