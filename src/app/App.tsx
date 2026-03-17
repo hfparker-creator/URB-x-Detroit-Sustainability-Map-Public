@@ -112,6 +112,22 @@ export default function App() {
     setShowList(false);
   };
 
+  // ── Legend solo-select ───────────────────────────────────────────────────
+  // Click a category in the legend: if it's the only active one, reset to all;
+  // otherwise filter to show only that category.
+  const handleLegendCategoryClick = (id: CategoryId) => {
+    const isSoloActive = activeCategories.length === 1 && activeCategories[0] === id;
+    if (isSoloActive) {
+      setActiveCategories(CATEGORIES.map((c) => c.id));
+      setActiveTransportSubtypes(TRANSPORT_SUBTYPES.map((s) => s.id));
+    } else {
+      setActiveCategories([id]);
+      if (id === 'transportation') {
+        setActiveTransportSubtypes(TRANSPORT_SUBTYPES.map((s) => s.id));
+      }
+    }
+  };
+
   // Does the current filter deviate from "all on"?
   const filtersActive =
     activeCategories.length < CATEGORIES.length ||
@@ -398,7 +414,10 @@ export default function App() {
 
         {/* Map Legend — bottom right */}
         <div className="absolute bottom-4 right-4 z-[999]" style={{ maxWidth: 220 }}>
-          <MapLegend />
+          <MapLegend
+            activeCategories={activeCategories}
+            onCategoryClick={handleLegendCategoryClick}
+          />
         </div>
 
         {/* Stats Bar — bottom left */}
