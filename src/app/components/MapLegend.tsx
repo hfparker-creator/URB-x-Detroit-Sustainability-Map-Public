@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, ChevronRight, Map } from 'lucide-react';
 import { CATEGORIES, TRANSPORT_SUBTYPES } from '../data/sustainabilityResources';
 import { CATEGORY_ICONS } from '../data/iconData';
 import { TramFront, TrainFront, Bike, Zap, Bus } from 'lucide-react';
-import type { TransportSubtype } from '../data/sustainabilityResources';
+import type { CategoryId, TransportSubtype } from '../data/sustainabilityResources';
 
 const SUBTYPE_ICONS: Record<TransportSubtype, React.ElementType> = {
   'qline':        TramFront,
@@ -13,7 +13,12 @@ const SUBTYPE_ICONS: Record<TransportSubtype, React.ElementType> = {
   'transit-hub':  Bus,
 };
 
-export function MapLegend() {
+export interface MapLegendProps {
+  activeCategories: CategoryId[];
+  onCategoryClick: (id: CategoryId) => void;
+}
+
+export function MapLegend({ activeCategories, onCategoryClick }: MapLegendProps) {
   const [collapsed,     setCollapsed]     = useState(false);
   const [showSubtypes,  setShowSubtypes]  = useState(false);
 
@@ -41,8 +46,15 @@ export function MapLegend() {
           {/* Main categories */}
           {CATEGORIES.map((cat) => {
             const Icon = CATEGORY_ICONS[cat.id];
+            const isActive = activeCategories.includes(cat.id);
             return (
-              <div key={cat.id} className="flex items-center gap-2.5 px-1 py-1.5 rounded-lg">
+              <button
+                key={cat.id}
+                onClick={() => onCategoryClick(cat.id)}
+                className="w-full flex items-center gap-2.5 px-1 py-1.5 rounded-lg transition-all hover:bg-gray-50 cursor-pointer"
+                style={{ opacity: isActive ? 1 : 0.35 }}
+                title={isActive ? `Hide ${cat.label}` : `Show only ${cat.label}`}
+              >
                 <div
                   className="flex items-center justify-center rounded-full flex-shrink-0"
                   style={{ width: 26, height: 26, backgroundColor: cat.color }}
@@ -52,7 +64,7 @@ export function MapLegend() {
                 <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500 }}>
                   {cat.label}
                 </span>
-              </div>
+              </button>
             );
           })}
 
