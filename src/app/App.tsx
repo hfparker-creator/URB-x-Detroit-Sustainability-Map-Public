@@ -3,6 +3,7 @@ import { Search, X, SlidersHorizontal, MapPin, ChevronDown, ChevronRight } from 
 import { DetroitMap } from './components/DetroitMap';
 import { ResourceSidebar } from './components/ResourceSidebar';
 import { MapLegend } from './components/MapLegend';
+import { ParkFinderSidebar } from './components/ParkFinderSidebar';
 import {
   CATEGORIES,
   RESOURCES,
@@ -23,6 +24,26 @@ const SUBTYPE_ICONS: Record<TransportSubtype, React.ElementType> = {
   'ev-charging':  Zap,
   'transit-hub':  Bus,
 };
+
+const PARK_FINDER_TERMS = [
+  'park',
+  'parks',
+  'park space',
+  'parkspace',
+  'playground',
+  'playgrounds',
+  'greenway',
+  'greenways',
+  'trail',
+  'trails',
+  'pathway',
+  'pathways',
+  'recreation',
+  'rec center',
+  'recreation center',
+  'recreation centres',
+  'recreation centre',
+];
 
 export default function App() {
   const [activeCategories, setActiveCategories] = useState<CategoryId[]>(
@@ -92,6 +113,13 @@ export default function App() {
     });
   }, [activeCategories, activeTransportSubtypes, searchQuery]);
 
+  const showParkFinderSidebar = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (normalizedQuery === '') return false;
+
+    return PARK_FINDER_TERMS.some((term) => normalizedQuery.includes(term));
+  }, [searchQuery]);
+
   // ── Counts ────────────────────────────────────────────────────────────────
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -110,6 +138,10 @@ export default function App() {
   const handleSelectResource = (resource: Resource) => {
     setSelectedResource(resource);
     setShowList(false);
+  };
+
+  const handleCloseParkFinderSidebar = () => {
+    setSearchQuery('');
   };
 
   // ── Legend solo-select ───────────────────────────────────────────────────
@@ -407,9 +439,16 @@ export default function App() {
         />
 
         {/* Resource Sidebar */}
-        <ResourceSidebar
-          resource={selectedResource}
-          onClose={() => setSelectedResource(null)}
+        {!showParkFinderSidebar && (
+          <ResourceSidebar
+            resource={selectedResource}
+            onClose={() => setSelectedResource(null)}
+          />
+        )}
+
+        <ParkFinderSidebar
+          isOpen={showParkFinderSidebar}
+          onClose={handleCloseParkFinderSidebar}
         />
 
         {/* Map Legend — bottom right */}
