@@ -5,9 +5,12 @@ import { ResourceSidebar } from './components/ResourceSidebar';
 import { MapLegend } from './components/MapLegend';
 import { ParkFinderSidebar } from './components/ParkFinderSidebar';
 import {
+  BUSINESS_TIERS,
   CATEGORIES,
   RESOURCES,
+  BusinessTierId,
   CategoryId,
+  hasMapCoordinates,
   Resource,
   TRANSPORT_SUBTYPES,
   TransportSubtype,
@@ -52,6 +55,9 @@ export default function App() {
   const [activeTransportSubtypes, setActiveTransportSubtypes] = useState<TransportSubtype[]>(
     TRANSPORT_SUBTYPES.map((s) => s.id)
   );
+  const [activeBusinessTiers, setActiveBusinessTiers] = useState<BusinessTierId[]>(
+    BUSINESS_TIERS.map((tier) => tier.id)
+  );
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [searchQuery,      setSearchQuery]      = useState('');
   const [showFilters,      setShowFilters]      = useState(false);
@@ -88,11 +94,28 @@ export default function App() {
     }
   };
 
+  const toggleBusinessTier = (id: BusinessTierId) => {
+    setActiveBusinessTiers((prev) =>
+      prev.includes(id) ? prev.filter((tier) => tier !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAllBusinessTiers = () => {
+    if (activeBusinessTiers.length === BUSINESS_TIERS.length) {
+      setActiveBusinessTiers([]);
+    } else {
+      setActiveBusinessTiers(BUSINESS_TIERS.map((tier) => tier.id));
+    }
+  };
+
   // ── Filtered resources (for the list view + stats bar) ───────────────────
   const filteredResources = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return RESOURCES.filter((r) => {
       if (!activeCategories.includes(r.category)) return false;
+      if (r.category === 'business' && r.businessTier && !activeBusinessTiers.includes(r.businessTier)) {
+        return false;
+      }
       // Transport sub-type filter
       if (r.category === 'transportation') {
         const matched = TRANSPORT_SUBTYPES.some(
@@ -111,7 +134,7 @@ export default function App() {
       }
       return true;
     });
-  }, [activeCategories, activeTransportSubtypes, searchQuery]);
+  }, [activeBusinessTiers, activeCategories, activeTransportSubtypes, searchQuery]);
 
   const showParkFinderSidebar = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -131,6 +154,16 @@ export default function App() {
     const counts: Record<string, number> = {};
     TRANSPORT_SUBTYPES.forEach((st) => {
       counts[st.id] = RESOURCES.filter((r) => r.id.startsWith(st.idPrefix)).length;
+    });
+    return counts;
+  }, []);
+
+  const businessTierCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    BUSINESS_TIERS.forEach((tier) => {
+      counts[tier.id] = RESOURCES.filter(
+        (resource) => resource.category === 'business' && resource.businessTier === tier.id
+      ).length;
     });
     return counts;
   }, []);
@@ -163,7 +196,8 @@ export default function App() {
   // Does the current filter deviate from "all on"?
   const filtersActive =
     activeCategories.length < CATEGORIES.length ||
-    activeTransportSubtypes.length < TRANSPORT_SUBTYPES.length;
+    activeTransportSubtypes.length < TRANSPORT_SUBTYPES.length ||
+    activeBusinessTiers.length < BUSINESS_TIERS.length;
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-900">
@@ -301,6 +335,101 @@ export default function App() {
               </div>
             </div>
 
+            {activeCategories.includes('business') && (
+              <div
+                className="rounded-xl border border-sky-100 overflow-hidden"
+                style={{ backgroundColor: '#f0f9ff' }}
+              >
+                <div className="flex items-center justify-between px-3 py-2 border-b border-sky-100">
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#0369a1',
+                    }}
+                  >
+                    Business Tiers
+                  </span>
+                  <button
+                    onClick={toggleAllBusinessTiers}
+                    className="text-sky-700 hover:text-sky-800"
+                    style={{ fontSize: '11px', fontWeight: 500 }}
+                  >
+                    {activeBusinessTiers.length === BUSINESS_TIERS.length ? 'Deselect all' : 'Select all'}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 px-3 py-3">
+                  {BUSINESS_TIERS.map((tier) => {
+                    const isActive = activeBusinessTiers.includes(tier.id);
+                    return (
+                      <button
+                        key={tier.id}
+                        onClick={() => toggleBusinessTier(tier.id)}
+                        className="min-w-[220px] flex-1 text-left px-3 py-2.5 rounded-xl border transition-all shadow-sm"
+                        style={{
+                          backgroundColor: isActive ? tier.bgColor : '#ffffff',
+                          borderColor: isActive ? tier.color : '#d1d5db',
+                          color: isActive ? '#111827' : '#6b7280',
+                          boxShadow: isActive
+                            ? `0 0 0 2px ${tier.color}22`
+                            : '0 1px 2px rgba(0, 0, 0, 0.04)',
+                        }}
+                        title={tier.description}
+                        aria-pressed={isActive}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span
+                                style={{
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  color: isActive ? tier.color : '#374151',
+                                }}
+                              >
+                                {tier.label}
+                              </span>
+                              <span
+                                className="rounded-full px-1.5 py-0.5"
+                                style={{
+                                  backgroundColor: isActive ? tier.color : '#e5e7eb',
+                                  color: isActive ? 'white' : '#6b7280',
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {businessTierCounts[tier.id] || 0}
+                              </span>
+                            </div>
+                            <p
+                              className="mt-1"
+                              style={{
+                                fontSize: '11px',
+                                lineHeight: '1.45',
+                                color: isActive ? '#374151' : '#6b7280',
+                              }}
+                            >
+                              {tier.description}
+                            </p>
+                          </div>
+                          <div
+                            className="mt-0.5 h-4 w-4 rounded-full border flex-shrink-0"
+                            style={{
+                              borderColor: isActive ? tier.color : '#cbd5e1',
+                              backgroundColor: isActive ? tier.color : 'transparent',
+                              boxShadow: isActive ? 'inset 0 0 0 3px white' : 'none',
+                            }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Row 2: Transport sub-types (only when Transportation is active) */}
             {activeCategories.includes('transportation') && (
               <div
@@ -396,6 +525,10 @@ export default function App() {
               filteredResources.map((resource) => {
                 const cat      = CATEGORIES.find((c) => c.id === resource.category)!;
                 const Icon     = CATEGORY_ICONS[resource.category];
+                const businessTier = resource.businessTier
+                  ? BUSINESS_TIERS.find((tier) => tier.id === resource.businessTier) ?? null
+                  : null;
+                const isListOnly = !hasMapCoordinates(resource);
                 const isSelected = selectedResource?.id === resource.id;
                 return (
                   <button
@@ -414,9 +547,37 @@ export default function App() {
                       <p className="truncate" style={{ fontSize: '13px', fontWeight: 600, color: '#111' }}>
                         {resource.name}
                       </p>
-                      <p className="text-gray-400 truncate" style={{ fontSize: '11px' }}>
-                        {resource.neighborhood} · {cat.label}
-                      </p>
+                      <div className="flex items-center gap-1.5 min-w-0 mt-0.5">
+                        <p className="text-gray-400 truncate" style={{ fontSize: '11px' }}>
+                          {resource.neighborhood} · {cat.label}
+                        </p>
+                        {businessTier && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 600,
+                              color: businessTier.color,
+                              backgroundColor: businessTier.bgColor,
+                            }}
+                          >
+                            {businessTier.label}
+                          </span>
+                        )}
+                        {isListOnly && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 600,
+                              color: '#4b5563',
+                              backgroundColor: '#f3f4f6',
+                            }}
+                          >
+                            List only
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {isSelected && (
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />

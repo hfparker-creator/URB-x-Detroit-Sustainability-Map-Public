@@ -8,8 +8,9 @@ import {
   Tag,
   Zap,
   ExternalLink,
+  List,
 } from 'lucide-react';
-import { Resource, CATEGORIES } from '../data/sustainabilityResources';
+import { BUSINESS_TIERS, Resource, CATEGORIES, hasMapCoordinates } from '../data/sustainabilityResources';
 import { CATEGORY_ICONS } from '../data/iconData';
 
 interface ResourceSidebarProps {
@@ -21,6 +22,10 @@ export function ResourceSidebar({ resource, onClose }: ResourceSidebarProps) {
   const category = resource
     ? CATEGORIES.find((c) => c.id === resource.category)
     : null;
+  const businessTier = resource?.businessTier
+    ? BUSINESS_TIERS.find((tier) => tier.id === resource.businessTier) ?? null
+    : null;
+  const isListOnly = resource ? !hasMapCoordinates(resource) : false;
 
   if (!resource || !category) return null;
 
@@ -61,6 +66,32 @@ export function ResourceSidebar({ resource, onClose }: ResourceSidebarProps) {
             <MapPin size={11} />
             {resource.neighborhood}
           </p>
+          {(businessTier || isListOnly) && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {businessTier && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-1"
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: businessTier.color,
+                    backgroundColor: businessTier.bgColor,
+                  }}
+                >
+                  {businessTier.label}
+                </span>
+              )}
+              {isListOnly && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-1 bg-white/80 text-gray-600"
+                  style={{ fontSize: '11px', fontWeight: 600 }}
+                >
+                  <List size={11} />
+                  List only
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <button
@@ -79,6 +110,26 @@ export function ResourceSidebar({ resource, onClose }: ResourceSidebarProps) {
         >
           {resource.description}
         </p>
+
+        {businessTier && (
+          <div
+            className="p-3 rounded-lg"
+            style={{ backgroundColor: businessTier.bgColor }}
+          >
+            <p style={{ fontSize: '12px', color: businessTier.color, fontWeight: 600 }}>
+              {businessTier.description}
+            </p>
+          </div>
+        )}
+
+        {isListOnly && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-gray-50">
+            <List size={14} className="mt-0.5 flex-shrink-0 text-gray-500" />
+            <p style={{ fontSize: '12px', color: '#4b5563', fontWeight: 600 }}>
+              This resource is listed in the directory, but it does not currently have a public map pin or storefront location.
+            </p>
+          </div>
+        )}
 
         {resource.impact && (
           <div
@@ -173,20 +224,30 @@ export function ResourceSidebar({ resource, onClose }: ResourceSidebarProps) {
         )}
 
         {/* Directions Button */}
-        <a
-          href={`https://maps.google.com/?q=${encodeURIComponent(resource.address)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-white transition-opacity hover:opacity-90"
-          style={{
-            backgroundColor: category.color,
-            fontSize: '13px',
-            fontWeight: 600,
-          }}
-        >
-          <MapPin size={14} />
-          Get Directions
-        </a>
+        {hasMapCoordinates(resource) ? (
+          <a
+            href={`https://maps.google.com/?q=${encodeURIComponent(resource.address)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-white transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: category.color,
+              fontSize: '13px',
+              fontWeight: 600,
+            }}
+          >
+            <MapPin size={14} />
+            Get Directions
+          </a>
+        ) : (
+          <div
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-gray-100 text-gray-500"
+            style={{ fontSize: '13px', fontWeight: 600 }}
+          >
+            <List size={14} />
+            Directory Listing
+          </div>
+        )}
       </div>
     </div>
   );

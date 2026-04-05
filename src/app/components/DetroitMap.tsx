@@ -6,6 +6,7 @@ import {
   CATEGORIES,
   Resource,
   CategoryId,
+  hasMapCoordinates,
   TransportSubtype,
   TRANSPORT_SUBTYPES,
 } from '../data/sustainabilityResources';
@@ -133,6 +134,7 @@ export function DetroitMap({
     const cats     = activeCatsRef.current;
     const subtypes = activeSubtypesRef.current;
     return RESOURCES.filter((r) => {
+      if (!hasMapCoordinates(r)) return false;
       if (!cats.includes(r.category)) return false;
       if (r.category === 'transportation') {
         // Check sub-type filter
@@ -243,6 +245,7 @@ export function DetroitMap({
 
     // Build all markers (not yet on map)
     RESOURCES.forEach((resource) => {
+      if (!hasMapCoordinates(resource)) return;
       const cat = CATEGORIES.find((c) => c.id === resource.category)!;
       const svg = buildSvgString(resource.category);
       const icon = createMarkerIcon(cat.color, svg, false);
@@ -283,7 +286,7 @@ export function DetroitMap({
   useEffect(() => {
     if (!mapRef.current) return;
     refreshDisplay();
-    if (selectedResource) {
+    if (selectedResource && hasMapCoordinates(selectedResource)) {
       mapRef.current.flyTo([selectedResource.lat, selectedResource.lng], 15, { duration: 0.7 });
     }
   }, [selectedResource, refreshDisplay]);

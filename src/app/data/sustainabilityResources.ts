@@ -1,5 +1,5 @@
 export type CategoryId = 'business' | 'public-resource' | 'transportation' | 'community';
-export type CategoryId = 'business' | 'public-resource' | 'transportation' | 'community';
+export type BusinessTierId = 'tier-1' | 'tier-2';
 
 // ── Transport sub-types ────────────────────────────────────────────────────
 export type TransportSubtype = 'qline' | 'people-mover' | 'mogo' | 'ev-charging' | 'transit-hub';
@@ -29,12 +29,21 @@ export interface Category {
   description: string;
 }
 
+export interface BusinessTier {
+  id: BusinessTierId;
+  label: string;
+  description: string;
+  color: string;
+  bgColor: string;
+}
+
 export interface Resource {
   id: string;
   name: string;
   category: CategoryId;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
+  businessTier?: BusinessTierId;
   address: string;
   neighborhood: string;
   description: string;
@@ -43,6 +52,10 @@ export interface Resource {
   phone?: string;
   tags: string[];
   impact?: string;
+}
+
+export function hasMapCoordinates(resource: Resource): resource is Resource & { lat: number; lng: number } {
+  return typeof resource.lat === 'number' && typeof resource.lng === 'number';
 }
 
 export const CATEGORIES: Category[] = [
@@ -76,12 +89,30 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
+export const BUSINESS_TIERS: BusinessTier[] = [
+  {
+    id: 'tier-1',
+    label: 'Tier 1',
+    description: 'Small businesses with a commitment to sustainability.',
+    color: '#0f766e',
+    bgColor: '#ccfbf1',
+  },
+  {
+    id: 'tier-2',
+    label: 'Tier 2',
+    description: 'Larger businesses with public sustainability messaging or positioning.',
+    color: '#92400e',
+    bgColor: '#fef3c7',
+  },
+];
+
 export const RESOURCES: Resource[] = [
   // ── BUSINESSES ─────────────────────────────────────────────────────────────
   {
     id: 'biz-bamboo',
     name: 'Bamboo',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3339, lng: -83.0506,
     address: '1420 Washington Blvd, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -93,6 +124,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-building-detroit',
     name: 'Building Detroit (Detroit Land Bank Authority)',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3297, lng: -83.0458,
     address: '500 Griswold St, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -104,6 +136,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-capital-impact',
     name: 'Capital Impact Partners',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.33687, lng: -83.05136,
     address: '1400 Michigan Ave, Detroit, MI 48226',
     neighborhood: 'Corktown',
@@ -115,6 +148,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-century-partners',
     name: 'Century Partners',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3453, lng: -83.0405,
     address: '1215 Griswold St, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -126,6 +160,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-civilla',
     name: 'Civilla',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3601, lng: -83.0722,
     address: '2921 E Grand Blvd, Detroit, MI 48202',
     neighborhood: 'New Center',
@@ -137,6 +172,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-east-detroit-primary-care',
     name: 'East Detroit Primary Care',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.4287, lng: -82.9579,
     address: '15300 E 9 Mile Rd, Eastpointe, MI 48021',
     neighborhood: 'Eastpointe',
@@ -148,6 +184,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-eye-care-detroit',
     name: 'Eye Care For Detroit, Inc. (ECFD)',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.4201, lng: -83.2147,
     address: '20500 W 8 Mile Rd, Detroit, MI 48219',
     neighborhood: 'Brightmoor',
@@ -159,6 +196,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-good-cakes',
     name: 'Good Cakes and Bakes',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.4353, lng: -83.1419,
     address: '19363 Livernois Ave, Detroit, MI 48221',
     neighborhood: 'University District',
@@ -167,9 +205,21 @@ export const RESOURCES: Resource[] = [
     tags: ['bakery', 'Black-owned', 'Livernois'],
   },
   {
+    id: 'biz-goodpluck',
+    name: 'Goodpluck',
+    category: 'business',
+    businessTier: 'tier-1',
+    address: 'No storefront location listed',
+    neighborhood: 'Detroit service area',
+    description: 'Detroit-based sustainable food delivery business highlighted in the project spreadsheet as a strong fit for the map despite not having a public storefront.',
+    website: 'https://urbanei.org/urban-innovator-platform/business-profiles/view-all-approved-business-profiles/?pagenum=2',
+    tags: ['food delivery', 'list only', 'service area', 'sustainable food'],
+  },
+  {
     id: 'biz-kornr-store',
     name: 'Kornr Store',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3533, lng: -83.0886,
     address: '4120 Cass Ave, Detroit, MI 48201',
     neighborhood: 'Midtown',
@@ -181,6 +231,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-mufi',
     name: 'Michigan Urban Farming Initiative (MUFI)',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3719, lng: -83.0641,
     address: '7432 Brush St, Detroit, MI 48202',
     neighborhood: 'North End',
@@ -193,6 +244,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-nextiles',
     name: 'NexTiles',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.4082, lng: -83.0818,
     address: '19300 James Couzens Hwy, Detroit, MI 48235',
     neighborhood: 'Northwest Detroit',
@@ -204,6 +256,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-ocelot',
     name: 'Ocelot Print Shop',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3458, lng: -83.0607,
     address: '1445 Beaubien St, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -215,6 +268,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-plum-health',
     name: 'Plum Health DPC',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3323, lng: -83.0673,
     address: '1423 W Fort St, Detroit, MI 48226',
     neighborhood: 'Corktown',
@@ -226,6 +280,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-sanctuary-farms',
     name: 'Sanctuary Farms',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3843, lng: -82.9578,
     address: '14305 Harper Ave, Detroit, MI 48213',
     neighborhood: 'East Side',
@@ -237,6 +292,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-spacelab',
     name: 'SpaceLab Detroit',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3294, lng: -83.0475,
     address: '1400 Griswold St, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -248,6 +304,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-strawberry-solar',
     name: 'Strawberry Solar',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3512, lng: -83.0664,
     address: '1420 W Fort St, Detroit, MI 48226',
     neighborhood: 'Corktown',
@@ -259,6 +316,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-the-commons',
     name: 'The Commons',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3686, lng: -83.0033,
     address: '8501 E Jefferson Ave, Detroit, MI 48214',
     neighborhood: 'Jefferson-Chalmers',
@@ -270,6 +328,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-the-congregation',
     name: 'The Congregation',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3775172, lng: -83.1005096,
     address: '8025 Agnes St, Detroit, MI 48214',
     neighborhood: 'Dexter',
@@ -281,6 +340,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-lab-drawer',
     name: 'The Lab Drawer',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3831, lng: -83.1098,
     address: '9400 W McNichols Rd, Detroit, MI 48221',
     neighborhood: 'Livernois-McNichols',
@@ -292,6 +352,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-todooly',
     name: 'ToDooly',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3325, lng: -83.0506,
     address: '1440 Washington Blvd, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -303,6 +364,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-treadcycle',
     name: 'TreadCycle',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3582, lng: -83.0205,
     address: '2800 E Jefferson Ave, Detroit, MI 48207',
     neighborhood: 'East Riverfront',
@@ -314,6 +376,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-tree-purposed',
     name: 'Tree-Purposed',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.4665, lng: -83.3693,
     address: 'Inkster, MI 48141',
     neighborhood: 'Metro Area',
@@ -325,6 +388,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-walker-miller',
     name: 'Walker-Miller Energy Services',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3736, lng: -83.0784,
     address: '3031 W Grand Blvd, Detroit, MI 48202',
     neighborhood: 'New Center',
@@ -337,6 +401,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-yum-village',
     name: 'Yum Village',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.3736, lng: -83.0766,
     address: '3038 W Grand Blvd, Detroit, MI 48202',
     neighborhood: 'New Center',
@@ -348,6 +413,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-barcade',
     name: 'Barcade Detroit',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.34738, lng: -83.06456,
     address: '1601 Farmer St, Detroit, MI 48226',
     neighborhood: 'Downtown',
@@ -359,6 +425,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-atwater-brewery',
     name: 'Atwater Brewery',
     category: 'business',
+    businessTier: 'tier-2',
     lat: 42.33715, lng: -83.01856,
     address: '237 Joseph Campau Ave, Detroit, MI 48207',
     neighborhood: 'Rivertown',
@@ -370,6 +437,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-gordon-biersch',
     name: 'Gordon Biersch',
     category: 'business',
+    businessTier: 'tier-2',
     lat: 42.2124, lng: -83.3534,
     address: 'Detroit Metropolitan Airport, Romulus, MI 48242',
     neighborhood: 'DTW Airport',
@@ -381,6 +449,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-cat-coras',
     name: "Cat Cora's Taproom",
     category: 'business',
+    businessTier: 'tier-2',
     lat: 42.21735, lng: -83.35648,
     address: 'Detroit Metropolitan Airport, Romulus, MI 48242',
     neighborhood: 'DTW Airport',
@@ -392,6 +461,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-air-margaritaville',
     name: 'Air Margaritaville',
     category: 'business',
+    businessTier: 'tier-2',
     lat: 42.22566, lng: -83.34845,
     address: 'Detroit Metropolitan Airport, Romulus, MI 48242',
     neighborhood: 'DTW Airport',
@@ -403,6 +473,7 @@ export const RESOURCES: Resource[] = [
     id: 'biz-detroit-street-lunchbox',
     name: 'Detroit Street Lunchbox',
     category: 'business',
+    businessTier: 'tier-1',
     lat: 42.212431, lng: -83.353393,
     address: 'Detroit Metropolitan Airport, Romulus, MI 48242',
     neighborhood: 'DTW Airport',
@@ -414,12 +485,37 @@ export const RESOURCES: Resource[] = [
     id: 'biz-plum-market',
     name: 'Plum Market with Zingermanns',
     category: 'business',
+    businessTier: 'tier-2',
     lat: 42.21272, lng: -83.35345,
     address: 'Detroit Metropolitan Airport, Romulus, MI 48242',
     neighborhood: 'DTW Airport',
     description: 'Premium organic grocery and deli featuring Zingermanns artisan products at Detroit Metropolitan Airport.',
     website: 'https://www.dinegreen.com/results',
     tags: ['grocery', 'organic', 'Zingermanns', 'airport', 'DTW'],
+  },
+  {
+    id: 'biz-hope-for-flowers',
+    name: 'HOPE for Flowers',
+    category: 'business',
+    businessTier: 'tier-1',
+    lat: 42.3508, lng: -83.0583,
+    address: '119 Garfield St, Suite 500, Detroit, MI 48201',
+    neighborhood: 'Midtown',
+    description: 'Detroit fashion label by Tracy Reese centered on responsible materials, thoughtful production, and community-rooted design.',
+    website: 'https://hopeforflowers.com',
+    tags: ['fashion', 'sustainable design', 'Midtown', 'women-owned'],
+  },
+  {
+    id: 'biz-eugenie-detroit',
+    name: 'EUGENIE Detroit',
+    category: 'business',
+    businessTier: 'tier-1',
+    lat: 42.3558, lng: -82.9862,
+    address: '1400 Van Dyke St, Detroit, MI 48214',
+    neighborhood: 'West Village',
+    description: 'Woman-owned Detroit boutique highlighting independent designers and brands with sustainability-minded values.',
+    website: 'https://eugeniedetroit.com',
+    tags: ['boutique', 'fashion', 'independent designers', 'West Village'],
   },
 
   // ── PUBLIC RESOURCES ────────────────────────────────────────────────────────
@@ -2094,6 +2190,94 @@ export const RESOURCES: Resource[] = [
     description: 'Community resource-sharing station providing non-perishable food, hygiene products, and household essentials on a give-what-you-can, take-what-you-need basis.',
     website: 'https://elmwoodblessingbox.org/',
     tags: ['blessing box', 'mutual aid', 'food sharing', 'community resource'],
+  },
+  {
+    id: 'com-eastern-market',
+    name: 'Eastern Market',
+    category: 'community',
+    lat: 42.346256, lng: -83.04007,
+    address: '2934 Russell St, Detroit, MI 48207',
+    neighborhood: 'Eastern Market',
+    description: 'Historic public market district connecting Detroit residents to regional farmers, food entrepreneurs, and local producers.',
+    website: 'https://easternmarket.org',
+    tags: ['farmers market', 'local food', 'produce', 'public market'],
+  },
+  {
+    id: 'com-the-congregation-farmers-market',
+    name: 'The Congregation Farmers Market',
+    category: 'community',
+    lat: 42.3852, lng: -83.1093,
+    address: '9321 Rosa Parks Blvd, Detroit, MI 48206',
+    neighborhood: 'Virginia Park',
+    description: 'Neighborhood market hosted at The Congregation that brings together farmers, local vendors, and community gathering space.',
+    website: 'https://thecongregationdetroit.com/farmers-market',
+    tags: ['farmers market', 'community gathering', 'local vendors', 'Virginia Park'],
+  },
+  {
+    id: 'com-chass-mercado',
+    name: 'CHASS Mercado',
+    category: 'community',
+    lat: 42.3069, lng: -83.1207,
+    address: '5635 W Fort St, Detroit, MI 48209',
+    neighborhood: 'Southwest Detroit',
+    description: 'Southwest Detroit community market offering fresh produce, local vendors, and neighborhood resources through CHASS.',
+    website: 'https://chasscenter.org/community/events/calendar-of-events/CHASS-Mercado',
+    tags: ['farmers market', 'Southwest Detroit', 'produce', 'community resources'],
+  },
+  {
+    id: 'com-hope-village-farmers-market',
+    name: 'Hope Village Farmers Market',
+    category: 'community',
+    lat: 42.4002, lng: -83.1214,
+    address: '14150 Woodrow Wilson St at Oakman Blvd, Detroit, MI 48238',
+    neighborhood: 'Hope Village',
+    description: 'Community-led farmers market in northwest Detroit featuring fresh produce, local vendors, arts programming, and neighborhood events.',
+    website: 'https://hopevillagecdc.org/farmers-market/',
+    tags: ['farmers market', 'Hope Village', 'fresh produce', 'community events'],
+  },
+  {
+    id: 'com-palmer-park-market',
+    name: 'Palmer Park Community Market',
+    category: 'community',
+    lat: 42.431991, lng: -83.115741,
+    address: '1313 W 7 Mile Rd, Detroit, MI 48203',
+    neighborhood: 'Palmer Park',
+    description: 'Weekly neighborhood market near the Detroit Exploration and Nature Center with farm produce and community-focused programming.',
+    website: 'https://www.peopleforpalmerpark.org/community-market.html',
+    tags: ['farmers market', 'Palmer Park', 'produce', 'Detroit Exploration and Nature Center'],
+  },
+  {
+    id: 'com-nw-detroit-farmers-market',
+    name: 'Northwest Detroit Farmers Market',
+    category: 'community',
+    lat: 42.4061555, lng: -83.223181,
+    address: '18445 Scarsdale St, Detroit, MI 48223',
+    neighborhood: 'North Rosedale Park',
+    description: 'Long-running northwest Detroit farmers market offering fresh produce, baked goods, and local products in a neighborhood gathering space.',
+    website: 'https://www.grandmontrosedale.com/northwest-detroit-farmers-market',
+    tags: ['farmers market', 'North Rosedale Park', 'produce', 'local products'],
+  },
+  {
+    id: 'com-royal-oak-farmers-market',
+    name: 'Royal Oak Farmers Market',
+    category: 'community',
+    lat: 42.4897809, lng: -83.1413068,
+    address: '316 E Eleven Mile Rd, Royal Oak, MI 48067',
+    neighborhood: 'Royal Oak',
+    description: 'Regional farmers market with Michigan-grown produce, flowers, specialty foods, and year-round community market activity.',
+    website: 'https://romi.gov/389/Farmers-Market',
+    tags: ['farmers market', 'regional market', 'produce', 'Royal Oak'],
+  },
+  {
+    id: 'com-birmingham-farmers-market',
+    name: 'Birmingham Farmers Market',
+    category: 'community',
+    lat: 42.5483, lng: -83.2139,
+    address: '660 N Old Woodward Ave, Birmingham, MI 48009',
+    neighborhood: 'Birmingham',
+    description: 'Seasonal outdoor market featuring Michigan produce, food vendors, flowers, and artisan goods in downtown Birmingham.',
+    website: 'https://www.allinbirmingham.com/visitors/farmers-market',
+    tags: ['farmers market', 'regional market', 'artisan goods', 'Birmingham'],
   },
 
   // ── MoGo Bike Share – Suburban Extension ──────────────────────────────────
