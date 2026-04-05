@@ -24,13 +24,18 @@ function createMarkerIcon(color: string, svgContent: string, isSelected: boolean
     ? `box-shadow:0 0 0 3px white,0 0 0 5px ${color},0 4px 14px rgba(0,0,0,0.35);`
     : `box-shadow:0 2px 7px rgba(0,0,0,0.28);`;
   const html = `<div style="
-    width:${size}px;height:${size}px;border-radius:50%;
+    width:${size}px;height:${size}px;border-radius:12px;
     background:${color};${shadow}
     display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transform:rotate(45deg);
+  "><div style="
+    width:${iconSize}px;height:${iconSize}px;
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-45deg);
   "><svg viewBox="0 0 24 24" width="${iconSize}" height="${iconSize}"
     fill="none" stroke="white" stroke-width="2"
     stroke-linecap="round" stroke-linejoin="round" style="display:block;"
-  >${svgContent}</svg></div>`;
+  >${svgContent}</svg></div></div>`;
   return L.divIcon({ html, className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 }
 
@@ -38,14 +43,15 @@ function createClusterIcon(color: string, count: number) {
   const size     = count < 10 ? 38 : count < 100 ? 44 : 52;
   const fontSize = count < 10 ? 14 : count < 100 ? 12 : 10;
   const html = `<div style="
-    width:${size}px;height:${size}px;border-radius:50%;
+    width:${size}px;height:${size}px;border-radius:16px;
     background:${color};
     box-shadow:0 0 0 4px ${color}44,0 3px 10px rgba(0,0,0,0.22);
     display:flex;align-items:center;justify-content:center;
     color:white;font-size:${fontSize}px;font-weight:700;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     cursor:pointer;
-  ">${count}</div>`;
+    transform:rotate(45deg);
+  "><span style="transform:rotate(-45deg);display:block;">${count}</span></div>`;
   return L.divIcon({ html, className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 }
 

@@ -200,62 +200,79 @@ export default function App() {
     activeBusinessTiers.length < BUSINESS_TIERS.length;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-900">
+    <div className="fixed inset-0 flex flex-col civic-app-shell text-stone-900">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 z-[1001] flex-shrink-0">
-        <div className="flex items-center gap-3 px-4 py-3">
+      <header className="civic-topbar z-[1001] flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-4 md:px-5">
           {/* Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #0f766e, #164e63)' }}
+            >
               <MapPin size={16} className="text-white" />
             </div>
             <div className="hidden sm:block">
-              <p style={{ fontSize: '14px', fontWeight: 700, color: '#111', lineHeight: '1.2' }}>
+              <p className="civic-kicker">Urban Resource Atlas</p>
+              <p className="civic-title" style={{ fontSize: '24px', fontWeight: 700, color: '#1f2937', lineHeight: '1.05' }}>
                 Detroit Sustainability Map
               </p>
-              <p style={{ fontSize: '11px', color: '#6b7280', lineHeight: '1.2' }}>
-                {RESOURCES.length} resources · Businesses, Public, Transit & Community
+              <p className="civic-subtitle" style={{ fontSize: '12px', lineHeight: '1.3', maxWidth: 360 }}>
+                A curated view of businesses, public resources, transportation, and community infrastructure across Detroit.
               </p>
             </div>
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 relative max-w-md">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search resources, neighborhoods..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-green-500 focus:bg-white transition-colors"
-              style={{ fontSize: '13px' }}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X size={14} />
-              </button>
-            )}
+          <div className="flex-1 min-w-[260px] max-w-xl">
+            <div className="civic-search rounded-2xl px-3 py-2">
+              <div className="flex items-center gap-3">
+                <Search size={15} className="text-stone-400 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="civic-micro-label">Search the directory</p>
+                  <input
+                    type="text"
+                    placeholder="Resources, neighborhoods, food access, transit..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-transparent outline-none text-stone-800 placeholder:text-stone-400"
+                    style={{ fontSize: '14px', fontWeight: 500 }}
+                  />
+                </div>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-stone-400 hover:text-stone-600 flex-shrink-0"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors ${
+            className={`civic-toolbar-button flex items-center gap-2 px-3.5 py-2.5 rounded-2xl transition-colors ${
               showFilters
-                ? 'bg-green-50 border-green-300 text-green-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                ? 'text-emerald-800'
+                : 'text-stone-700'
             }`}
-            style={{ fontSize: '13px', fontWeight: 500, flexShrink: 0 }}
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              flexShrink: 0,
+              borderColor: showFilters ? 'rgba(16, 109, 92, 0.38)' : undefined,
+              background: showFilters ? 'rgba(221, 245, 239, 0.92)' : undefined,
+            }}
           >
             <SlidersHorizontal size={14} />
             <span className="hidden sm:inline">Filters</span>
             {filtersActive && (
               <span
-                className="bg-green-600 text-white rounded-full px-1.5 py-0.5"
-                style={{ fontSize: '10px' }}
+                className="rounded-full px-1.5 py-0.5 text-white"
+                style={{ fontSize: '10px', backgroundColor: '#0f766e' }}
               >
                 {activeCategories.length + activeTransportSubtypes.length}
               </span>
@@ -265,14 +282,20 @@ export default function App() {
           {/* List Toggle */}
           <button
             onClick={() => setShowList((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors ${
+            className={`civic-toolbar-button flex items-center gap-2 px-3.5 py-2.5 rounded-2xl transition-colors ${
               showList
-                ? 'bg-blue-50 border-blue-300 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                ? 'text-sky-800'
+                : 'text-stone-700'
             }`}
-            style={{ fontSize: '13px', fontWeight: 500, flexShrink: 0 }}
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              flexShrink: 0,
+              borderColor: showList ? 'rgba(3, 105, 161, 0.34)' : undefined,
+              background: showList ? 'rgba(224, 242, 254, 0.94)' : undefined,
+            }}
           >
-            <span className="hidden sm:inline">List</span>
+            <span className="hidden sm:inline">Directory</span>
             <ChevronDown
               size={14}
               className={`transition-transform ${showList ? 'rotate-180' : ''}`}
@@ -282,19 +305,17 @@ export default function App() {
 
         {/* ── Filter Panel ──────────────────────────────────────────────── */}
         {showFilters && (
-          <div className="px-4 pb-3 border-t border-gray-100 pt-3 space-y-3">
+          <div className="px-4 pb-4 pt-2 md:px-5">
+            <div className="civic-panel rounded-[24px] px-4 py-4 space-y-4">
             {/* Row 1: Categories */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span
-                  className="text-gray-500"
-                  style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                >
+                <span className="civic-kicker">
                   Categories
                 </span>
                 <button
                   onClick={toggleAll}
-                  className="text-green-600 hover:text-green-700"
+                  className="text-emerald-700 hover:text-emerald-800"
                   style={{ fontSize: '12px', fontWeight: 500 }}
                 >
                   {activeCategories.length === CATEGORIES.length ? 'Deselect all' : 'Select all'}
@@ -308,13 +329,13 @@ export default function App() {
                     <button
                       key={cat.id}
                       onClick={() => toggleCategory(cat.id)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all shadow-sm"
                       style={{
                         fontSize: '12px', fontWeight: 500,
-                        backgroundColor: isActive ? cat.bgColor : '#f9fafb',
-                        borderColor:     isActive ? cat.color  : '#e5e7eb',
-                        color:           isActive ? cat.color  : '#9ca3af',
-                        opacity: isActive ? 1 : 0.65,
+                        backgroundColor: isActive ? cat.bgColor : 'rgba(255, 250, 243, 0.88)',
+                        borderColor:     isActive ? cat.color  : '#ddd6c7',
+                        color:           isActive ? cat.color  : '#7c6f61',
+                        opacity: isActive ? 1 : 0.8,
                       }}
                     >
                       <Icon size={12} strokeWidth={2.5} />
@@ -337,19 +358,11 @@ export default function App() {
 
             {activeCategories.includes('business') && (
               <div
-                className="rounded-xl border border-sky-100 overflow-hidden"
-                style={{ backgroundColor: '#f0f9ff' }}
+                className="rounded-[20px] border overflow-hidden"
+                style={{ backgroundColor: '#f4f7f7', borderColor: '#d6e5e4' }}
               >
-                <div className="flex items-center justify-between px-3 py-2 border-b border-sky-100">
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: '#0369a1',
-                    }}
-                  >
+                <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: '#d6e5e4' }}>
+                  <span className="civic-kicker" style={{ color: '#0f766e' }}>
                     Business Tiers
                   </span>
                   <button
@@ -433,8 +446,8 @@ export default function App() {
             {/* Row 2: Transport sub-types (only when Transportation is active) */}
             {activeCategories.includes('transportation') && (
               <div
-                className="rounded-xl border border-violet-100 overflow-hidden"
-                style={{ backgroundColor: '#faf5ff' }}
+                className="rounded-[20px] border overflow-hidden"
+                style={{ backgroundColor: '#faf6ff', borderColor: '#e7daf8' }}
               >
                 {/* Sub-type header */}
                 <div
@@ -442,20 +455,15 @@ export default function App() {
                   tabIndex={0}
                   onClick={() => setSubtypesExpanded((v) => !v)}
                   onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? setSubtypesExpanded((v) => !v) : undefined}
-                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-violet-50 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-3 py-2 transition-colors cursor-pointer"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.28)' }}
                 >
                   <div className="flex items-center gap-2">
                     {subtypesExpanded
                       ? <ChevronDown size={12} className="text-violet-400" />
                       : <ChevronRight size={12} className="text-violet-400" />
                     }
-                    <span
-                      style={{
-                        fontSize: '11px', fontWeight: 600,
-                        textTransform: 'uppercase', letterSpacing: '0.05em',
-                        color: '#7c3aed',
-                      }}
-                    >
+                    <span className="civic-kicker" style={{ color: '#7c3aed' }}>
                       Transportation Sub-types
                     </span>
                   </div>
@@ -486,10 +494,10 @@ export default function App() {
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all"
                           style={{
                             fontSize: '12px', fontWeight: 500,
-                            backgroundColor: isActive ? st.bgColor : '#f9fafb',
-                            borderColor:     isActive ? st.color  : '#e5e7eb',
-                            color:           isActive ? st.color  : '#9ca3af',
-                            opacity: isActive ? 1 : 0.6,
+                            backgroundColor: isActive ? st.bgColor : 'rgba(255, 255, 255, 0.82)',
+                            borderColor:     isActive ? st.color  : '#ddd6c7',
+                            color:           isActive ? st.color  : '#7c6f61',
+                            opacity: isActive ? 1 : 0.82,
                           }}
                         >
                           <Icon size={12} strokeWidth={2.5} />
@@ -511,14 +519,16 @@ export default function App() {
                 )}
               </div>
             )}
+            </div>
           </div>
         )}
 
         {/* ── Resource List Dropdown ────────────────────────────────────── */}
         {showList && (
-          <div className="border-t border-gray-100 max-h-72 overflow-y-auto">
+          <div className="px-4 pb-4 md:px-5">
+            <div className="civic-panel rounded-[24px] border-t max-h-72 overflow-y-auto">
             {filteredResources.length === 0 ? (
-              <p className="text-center text-gray-400 py-6" style={{ fontSize: '13px' }}>
+              <p className="text-center text-stone-400 py-6" style={{ fontSize: '13px' }}>
                 No resources match your search.
               </p>
             ) : (
@@ -534,11 +544,14 @@ export default function App() {
                   <button
                     key={resource.id}
                     onClick={() => handleSelectResource(resource)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 text-left transition-colors"
-                    style={{ backgroundColor: isSelected ? cat.bgColor : undefined }}
+                    className="w-full flex items-center gap-3 px-4 py-3 border-b text-left transition-colors"
+                    style={{
+                      backgroundColor: isSelected ? cat.bgColor : 'transparent',
+                      borderColor: 'rgba(120, 99, 72, 0.08)',
+                    }}
                   >
                     <div
-                      className="rounded-lg flex items-center justify-center flex-shrink-0"
+                      className="rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm"
                       style={{ width: 30, height: 30, backgroundColor: cat.color }}
                     >
                       <Icon size={14} color="white" strokeWidth={2} />
@@ -580,12 +593,13 @@ export default function App() {
                       </div>
                     </div>
                     {isSelected && (
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                     )}
                   </button>
                 );
               })
             )}
+            </div>
           </div>
         )}
       </header>
@@ -613,7 +627,7 @@ export default function App() {
         />
 
         {/* Map Legend — bottom right */}
-        <div className="absolute bottom-4 right-4 z-[999]" style={{ maxWidth: 220 }}>
+        <div className="absolute bottom-4 right-4 z-[999]" style={{ maxWidth: 240 }}>
           <MapLegend
             activeCategories={activeCategories}
             onCategoryClick={handleLegendCategoryClick}
@@ -622,30 +636,30 @@ export default function App() {
 
         {/* Stats Bar — bottom left */}
         <div className="absolute bottom-4 left-4 z-[999]">
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-4 py-2.5 flex items-center gap-4">
+          <div className="civic-panel rounded-[22px] px-4 py-3 flex items-center gap-4">
             <div className="text-center">
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#16a34a', lineHeight: '1' }}>
+              <p className="civic-title" style={{ fontSize: '23px', fontWeight: 700, color: '#0f766e', lineHeight: '1' }}>
                 {filteredResources.length}
               </p>
-              <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              <p className="civic-micro-label">
                 Shown
               </p>
             </div>
-            <div className="w-px h-8 bg-gray-200" />
+            <div className="w-px h-8 bg-stone-200" />
             <div className="text-center">
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#2563eb', lineHeight: '1' }}>
+              <p className="civic-title" style={{ fontSize: '23px', fontWeight: 700, color: '#0f3d56', lineHeight: '1' }}>
                 {RESOURCES.length}
               </p>
-              <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              <p className="civic-micro-label">
                 Total
               </p>
             </div>
-            <div className="w-px h-8 bg-gray-200" />
+            <div className="w-px h-8 bg-stone-200" />
             <div className="text-center">
-              <p style={{ fontSize: '18px', fontWeight: 800, color: '#7c3aed', lineHeight: '1' }}>
+              <p className="civic-title" style={{ fontSize: '23px', fontWeight: 700, color: '#7c3aed', lineHeight: '1' }}>
                 {activeCategories.length}
               </p>
-              <p style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              <p className="civic-micro-label">
                 Categories
               </p>
             </div>
@@ -655,23 +669,27 @@ export default function App() {
         <style>{`
           .leaflet-control-zoom {
             border: none !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
+            box-shadow: 0 12px 28px rgba(52,38,24,0.16) !important;
+            border-radius: 16px !important;
             overflow: hidden;
             margin: 16px !important;
           }
           .leaflet-control-zoom a {
             border: none !important;
-            color: #374151 !important;
+            color: #4b5563 !important;
             font-size: 16px !important;
+            background: rgba(255, 250, 243, 0.96) !important;
           }
-          .leaflet-control-zoom a:hover { background-color: #f3f4f6 !important; }
+          .leaflet-control-zoom a:hover { background-color: #efe6d5 !important; }
           .leaflet-marker-icon { cursor: pointer; }
           .leaflet-container { font-family: inherit; }
           .leaflet-tooltip {
             white-space: pre-line;
             font-size: 12px;
             max-width: 200px;
+            border-radius: 12px;
+            border: 1px solid rgba(111, 88, 58, 0.16);
+            box-shadow: 0 10px 30px rgba(60, 45, 28, 0.14);
           }
         `}</style>
       </div>

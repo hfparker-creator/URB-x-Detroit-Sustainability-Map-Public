@@ -23,26 +23,27 @@ export function MapLegend({ activeCategories, onCategoryClick }: MapLegendProps)
   const [showSubtypes,  setShowSubtypes]  = useState(false);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ minWidth: '208px' }}>
+    <div className="civic-panel rounded-[22px] overflow-hidden" style={{ minWidth: '220px' }}>
       {/* Header */}
       <button
         onClick={() => setCollapsed((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors border-b border-gray-100"
+        className="w-full flex items-center justify-between px-4 py-3 transition-colors border-b"
+        style={{ backgroundColor: 'rgba(112, 86, 53, 0.06)', borderColor: 'rgba(112, 86, 53, 0.12)' }}
       >
         <div className="flex items-center gap-2">
-          <Map size={13} className="text-gray-500" />
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <Map size={13} className="text-stone-500" />
+          <span className="civic-kicker" style={{ color: '#5f4a30' }}>
             Legend
           </span>
         </div>
         {collapsed
-          ? <ChevronDown size={13} className="text-gray-400" />
-          : <ChevronUp   size={13} className="text-gray-400" />
+          ? <ChevronDown size={13} className="text-stone-400" />
+          : <ChevronUp   size={13} className="text-stone-400" />
         }
       </button>
 
       {!collapsed && (
-        <div className="p-2 space-y-0.5">
+        <div className="p-3 space-y-1">
           {/* Main categories */}
           {CATEGORIES.map((cat) => {
             const Icon = CATEGORY_ICONS[cat.id];
@@ -51,30 +52,41 @@ export function MapLegend({ activeCategories, onCategoryClick }: MapLegendProps)
               <button
                 key={cat.id}
                 onClick={() => onCategoryClick(cat.id)}
-                className="w-full flex items-center gap-2.5 px-1 py-1.5 rounded-lg transition-all hover:bg-gray-50 cursor-pointer"
-                style={{ opacity: isActive ? 1 : 0.35 }}
+                className="w-full flex items-center gap-3 px-2.5 py-2 rounded-2xl transition-all cursor-pointer"
+                style={{
+                  opacity: isActive ? 1 : 0.55,
+                  backgroundColor: isActive ? `${cat.bgColor}` : 'rgba(255, 251, 245, 0.55)',
+                }}
                 title={isActive ? `Hide ${cat.label}` : `Show only ${cat.label}`}
               >
                 <div
-                  className="flex items-center justify-center rounded-full flex-shrink-0"
-                  style={{ width: 26, height: 26, backgroundColor: cat.color }}
+                  className="flex items-center justify-center rounded-[12px] flex-shrink-0 shadow-sm"
+                  style={{ width: 28, height: 28, backgroundColor: cat.color, transform: 'rotate(45deg)' }}
                 >
-                  <Icon size={13} color="white" strokeWidth={2} />
+                  <div style={{ transform: 'rotate(-45deg)' }}>
+                    <Icon size={13} color="white" strokeWidth={2} />
+                  </div>
                 </div>
-                <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500 }}>
-                  {cat.label}
-                </span>
+                <div className="flex-1 text-left">
+                  <span style={{ fontSize: '12px', color: '#374151', fontWeight: 600 }}>
+                    {cat.label}
+                  </span>
+                </div>
+                <div
+                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: isActive ? cat.color : '#d6d3d1' }}
+                />
               </button>
             );
           })}
 
           {/* Cluster indicator */}
-          <div className="flex items-center gap-2.5 px-1 py-1.5 rounded-lg mt-0.5 border-t border-gray-100 pt-2">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl mt-1 border-t pt-3" style={{ borderColor: 'rgba(112, 86, 53, 0.12)' }}>
             <div
-              className="flex items-center justify-center rounded-full flex-shrink-0"
-              style={{ width: 26, height: 26, backgroundColor: '#6b7280', color: 'white', fontSize: '10px', fontWeight: 700 }}
+              className="flex items-center justify-center rounded-[12px] flex-shrink-0"
+              style={{ width: 28, height: 28, backgroundColor: '#78624b', color: 'white', fontSize: '10px', fontWeight: 700, transform: 'rotate(45deg)' }}
             >
-              N
+              <span style={{ transform: 'rotate(-45deg)' }}>N</span>
             </div>
             <span style={{ fontSize: '11px', color: '#6b7280' }}>
               Cluster (zoom in)
@@ -82,12 +94,13 @@ export function MapLegend({ activeCategories, onCategoryClick }: MapLegendProps)
           </div>
 
           {/* Transport sub-types expandable */}
-          <div className="border-t border-gray-100 mt-1 pt-1">
+          <div className="border-t mt-1 pt-2" style={{ borderColor: 'rgba(112, 86, 53, 0.12)' }}>
             <button
               onClick={() => setShowSubtypes((v) => !v)}
-              className="w-full flex items-center justify-between px-1 py-1 hover:bg-gray-50 rounded-lg transition-colors"
+              className="w-full flex items-center justify-between px-2 py-2 rounded-xl transition-colors"
+              style={{ backgroundColor: 'rgba(124, 58, 237, 0.05)' }}
             >
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span className="civic-kicker" style={{ color: '#7c3aed' }}>
                 Transit Types
               </span>
               {showSubtypes
@@ -97,11 +110,11 @@ export function MapLegend({ activeCategories, onCategoryClick }: MapLegendProps)
             </button>
 
             {showSubtypes && (
-              <div className="mt-1 space-y-0.5">
+              <div className="mt-2 space-y-1">
                 {TRANSPORT_SUBTYPES.map((st) => {
                   const Icon = SUBTYPE_ICONS[st.id];
                   return (
-                    <div key={st.id} className="flex items-center gap-2 px-1 py-1 rounded-lg">
+                    <div key={st.id} className="flex items-center gap-2 px-2 py-1.5 rounded-xl bg-white/55">
                       <div
                         className="flex items-center justify-center rounded-full flex-shrink-0"
                         style={{ width: 20, height: 20, backgroundColor: st.color }}

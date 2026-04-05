@@ -14,11 +14,11 @@ export interface TransportSubtypeConfig {
 }
 
 export const TRANSPORT_SUBTYPES: TransportSubtypeConfig[] = [
-  { id: 'qline',        label: 'QLINE',          idPrefix: 'tr-qline-',  color: '#b45309', bgColor: '#fef3c7' },
-  { id: 'people-mover', label: 'People Mover',    idPrefix: 'tr-pm-',     color: '#0369a1', bgColor: '#e0f2fe' },
-  { id: 'mogo',         label: 'MoGo Bike Share', idPrefix: 'tr-mogo-',   color: '#15803d', bgColor: '#dcfce7' },
-  { id: 'ev-charging',  label: 'EV Charging',     idPrefix: 'tr-ev-',     color: '#7c3aed', bgColor: '#ede9fe' },
-  { id: 'transit-hub',  label: 'Transit Hubs',    idPrefix: 'tr-center-', color: '#dc2626', bgColor: '#fee2e2' },
+  { id: 'qline',        label: 'QLINE',          idPrefix: 'tr-qline-',  color: '#b8860b', bgColor: '#fdf3c7' },
+  { id: 'people-mover', label: 'People Mover',   idPrefix: 'tr-pm-',     color: '#0057b8', bgColor: '#dce9fb' },
+  { id: 'mogo',         label: 'MoGo Bike Share', idPrefix: 'tr-mogo-',  color: '#147a73', bgColor: '#d8f1ec' },
+  { id: 'ev-charging',  label: 'EV Charging',    idPrefix: 'tr-ev-',     color: '#6b5ca5', bgColor: '#ece8fb' },
+  { id: 'transit-hub',  label: 'Transit Hubs',   idPrefix: 'tr-center-', color: '#c8102e', bgColor: '#fde8ec' },
 ];
 
 export interface Category {
@@ -62,29 +62,29 @@ export const CATEGORIES: Category[] = [
   {
     id: 'business',
     label: 'Businesses',
-    color: '#0ea5e9',
-    bgColor: '#e0f2fe',
+    color: '#c8102e',
+    bgColor: '#fde8ec',
     description: 'Local sustainable businesses and social enterprises',
   },
   {
     id: 'public-resource',
     label: 'Public Resources',
-    color: '#f59e0b',
-    bgColor: '#fef3c7',
+    color: '#0057b8',
+    bgColor: '#dce9fb',
     description: 'Government buildings, civic services, and public facilities',
   },
   {
     id: 'transportation',
     label: 'Transportation',
-    color: '#8b5cf6',
-    bgColor: '#ede9fe',
+    color: '#b8860b',
+    bgColor: '#fdf3c7',
     description: 'Transit stops, bike shares, EV charging, and mobility hubs',
   },
   {
     id: 'community',
     label: 'Community',
-    color: '#10b981',
-    bgColor: '#d1fae5',
+    color: '#147a73',
+    bgColor: '#d8f1ec',
     description: 'Recreation centers, gardens, food banks, and community spaces',
   },
 ];
@@ -94,15 +94,15 @@ export const BUSINESS_TIERS: BusinessTier[] = [
     id: 'tier-1',
     label: 'Tier 1',
     description: 'Small businesses with a commitment to sustainability.',
-    color: '#0f766e',
-    bgColor: '#ccfbf1',
+    color: '#147a73',
+    bgColor: '#d8f1ec',
   },
   {
     id: 'tier-2',
     label: 'Tier 2',
     description: 'Larger businesses with public sustainability messaging or positioning.',
-    color: '#92400e',
-    bgColor: '#fef3c7',
+    color: '#b8860b',
+    bgColor: '#fdf3c7',
   },
 ];
 
