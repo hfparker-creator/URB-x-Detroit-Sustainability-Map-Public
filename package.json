@@ -4,8 +4,9 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite"
+    "sync:businesses": "node scripts/sync-businesses.mjs",
+    "build": "npm run sync:businesses && vite build",
+    "dev": "npm run sync:businesses && vite"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
