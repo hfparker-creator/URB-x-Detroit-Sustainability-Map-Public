@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import {
-  RESOURCES,
   CATEGORIES,
   Resource,
   CategoryId,
@@ -105,6 +104,7 @@ function computeClusters(
 
 // ── Component ──────────────────────────────────────────────────────────────
 export interface DetroitMapProps {
+  resources: Resource[];
   activeCategories: CategoryId[];
   activeTransportSubtypes: TransportSubtype[];
   selectedResource: Resource | null;
@@ -112,6 +112,7 @@ export interface DetroitMapProps {
 }
 
 export function DetroitMap({
+  resources,
   activeCategories,
   activeTransportSubtypes,
   selectedResource,
@@ -126,26 +127,26 @@ export function DetroitMap({
   // Individual marker layer group (only used at zoom >= threshold)
   const markerLayerRef  = useRef<L.LayerGroup | null>(null);
 
-  const onSelectRef            = useRef(onSelectResource);
-  onSelectRef.current          = onSelectResource;
-  const activeCatsRef          = useRef(activeCategories);
-  activeCatsRef.current        = activeCategories;
-  const activeSubtypesRef      = useRef(activeTransportSubtypes);
-  activeSubtypesRef.current    = activeTransportSubtypes;
-  const selectedResourceRef    = useRef(selectedResource);
-  selectedResourceRef.current  = selectedResource;
+  // ── Latest-value refs — read inside stable callbacks ─────────────────────
+  const onSelectRef         = useRef(onSelectResource);
+  onSelectRef.current       = onSelectResource;
+  const selectedResourceRef = useRef(selectedResource);
+  selectedResourceRef.current = selectedResource;
+  const resourcesRef        = useRef(resources);
+  resourcesRef.current      = resources;
+  const activeCatsRef       = useRef(activeCategories);
+  activeCatsRef.current     = activeCategories;
+  const activeSubtypesRef   = useRef(activeTransportSubtypes);
+  activeSubtypesRef.current = activeTransportSubtypes;
 
-  // Derive which resources are currently visible
+  // ── Stable callbacks (empty deps — read everything via refs) ─────────────
   const getVisibleResources = useCallback((): Resource[] => {
-    const cats     = activeCatsRef.current;
-    const subtypes = activeSubtypesRef.current;
-    return RESOURCES.filter((r) => {
+    return resourcesRef.current.filter((r) => {
       if (!hasMapCoordinates(r)) return false;
-      if (!cats.includes(r.category)) return false;
+      if (!activeCatsRef.current.includes(r.category)) return false;
       if (r.category === 'transportation') {
-        // Check sub-type filter
         const matched = TRANSPORT_SUBTYPES.some(
-          (st) => subtypes.includes(st.id) && r.id.startsWith(st.idPrefix)
+          (st) => activeSubtypesRef.current.includes(st.id) && r.id.startsWith(st.idPrefix)
         );
         if (!matched) return false;
       }
@@ -153,8 +154,7 @@ export function DetroitMap({
     });
   }, []);
 
-  // Main display refresh: clusters vs individual markers
-  const refreshDisplay = useCallback(() => {
+  const refreshDisplay = useCallback((): void => {
     const map = mapRef.current;
     if (!map || !clusterLayerRef.current || !markerLayerRef.current) return;
 
@@ -168,7 +168,8 @@ export function DetroitMap({
 
       const visibleIds = new Set(visible.map((r) => r.id));
       markersRef.current.forEach((marker, id) => {
-        const resource = RESOURCES.find((r) => r.id === id)!;
+        const resource = resourcesRef.current.find((r) => r.id === id);
+        if (!resource) return;
         const cat = CATEGORIES.find((c) => c.id === resource.category)!;
         const svg = buildSvgString(resource.category);
         const isSelected = id === selectedId;
@@ -193,7 +194,6 @@ export function DetroitMap({
         const cat = CATEGORIES.find((c) => c.id === cluster.category)!;
 
         if (cluster.resources.length === 1) {
-          // Single marker — still show as pin, not a cluster bubble
           const r   = cluster.resources[0];
           const svg = buildSvgString(r.category);
           const isSelected = r.id === selectedId;
@@ -202,17 +202,14 @@ export function DetroitMap({
             .on('click', () => onSelectRef.current(r));
           clusterLayerRef.current!.addLayer(marker);
         } else {
-          // Cluster bubble
           const icon = createClusterIcon(cat.color, cluster.resources.length);
           const marker = L.marker([cluster.lat, cluster.lng], { icon })
             .on('click', () => {
-              // Zoom in to fit all cluster members
               const bounds = L.latLngBounds(
                 cluster.resources.map((r) => [r.lat, r.lng] as [number, number])
               );
               map.flyToBounds(bounds, { padding: [60, 60], maxZoom: CLUSTER_ZOOM_THRESHOLD + 1, duration: 0.6 });
             });
-          // Tooltip showing all names
           const names = cluster.resources.slice(0, 5).map((r) => r.name).join('\n');
           const extra = cluster.resources.length > 5 ? `\n+${cluster.resources.length - 5} more` : '';
           marker.bindTooltip(`${cat.label} (${cluster.resources.length})\n${names}${extra}`, {
@@ -223,6 +220,10 @@ export function DetroitMap({
       });
     }
   }, [getVisibleResources]);
+
+  // Keep a stable ref to refreshDisplay for use in map event listeners
+  const refreshDisplayRef = useRef(refreshDisplay);
+  refreshDisplayRef.current = refreshDisplay;
 
   // ── Initialization ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -248,9 +249,32 @@ export function DetroitMap({
     const clusterLayer = L.layerGroup().addTo(map);
     markerLayerRef.current  = markerLayer;
     clusterLayerRef.current = clusterLayer;
+    mapRef.current = map;
 
-    // Build all markers (not yet on map)
-    RESOURCES.forEach((resource) => {
+    setTimeout(() => refreshDisplayRef.current(), 50);
+    map.on('zoomend', () => refreshDisplayRef.current());
+    map.on('moveend', () => {
+      if (map.getZoom() < CLUSTER_ZOOM_THRESHOLD) refreshDisplayRef.current();
+    });
+
+    return () => {
+      map.remove();
+      mapRef.current          = null;
+      markerLayerRef.current  = null;
+      clusterLayerRef.current = null;
+      markersRef.current.clear();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Rebuild markers only when resource list changes (API load/refresh) ───
+  useEffect(() => {
+    if (!mapRef.current || !markerLayerRef.current) return;
+
+    markersRef.current.forEach((marker) => markerLayerRef.current!.removeLayer(marker));
+    markersRef.current.clear();
+
+    resources.forEach((resource) => {
       if (!hasMapCoordinates(resource)) return;
       const cat = CATEGORIES.find((c) => c.id === resource.category)!;
       const svg = buildSvgString(resource.category);
@@ -260,42 +284,24 @@ export function DetroitMap({
       markersRef.current.set(resource.id, marker);
     });
 
-    mapRef.current = map;
-
-    // Initial render after a short settle
-    setTimeout(() => refreshDisplay(), 50);
-
-    // Re-cluster on zoom
-    map.on('zoomend', () => refreshDisplay());
-    // Also re-cluster on moveend in case container point positions changed
-    map.on('moveend', () => {
-      if (map.getZoom() < CLUSTER_ZOOM_THRESHOLD) refreshDisplay();
-    });
-
-    return () => {
-      map.remove();
-      mapRef.current       = null;
-      markerLayerRef.current  = null;
-      clusterLayerRef.current = null;
-      markersRef.current.clear();
-    };
+    refreshDisplayRef.current();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resources]);
 
-  // ── React to filter changes ────────────────────────────────────────────
+  // ── Re-render when filters change ─────────────────────────────────────
   useEffect(() => {
     if (!mapRef.current) return;
-    refreshDisplay();
-  }, [activeCategories, activeTransportSubtypes, refreshDisplay]);
+    refreshDisplayRef.current();
+  }, [activeCategories, activeTransportSubtypes]);
 
-  // ── React to selected resource changes ────────────────────────────────
+  // ── Fly to + re-render when selected resource changes ─────────────────
   useEffect(() => {
     if (!mapRef.current) return;
-    refreshDisplay();
+    refreshDisplayRef.current();
     if (selectedResource && hasMapCoordinates(selectedResource)) {
       mapRef.current.flyTo([selectedResource.lat, selectedResource.lng], 15, { duration: 0.7 });
     }
-  }, [selectedResource, refreshDisplay]);
+  }, [selectedResource]);
 
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }

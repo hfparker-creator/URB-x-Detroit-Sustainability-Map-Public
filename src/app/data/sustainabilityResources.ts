@@ -1,5 +1,3 @@
-import { GENERATED_BUSINESSES } from './generatedBusinesses';
-
 export type CategoryId = 'business' | 'public-resource' | 'transportation' | 'community';
 export type BusinessTierId = 'tier-1' | 'tier-2';
 
@@ -60,10 +58,6 @@ export function hasMapCoordinates(resource: Resource): resource is Resource & { 
   return typeof resource.lat === 'number' && typeof resource.lng === 'number';
 }
 
-type GeneratedBusinessResource = Partial<Resource> &
-  Pick<Resource, 'name' | 'category'> & {
-    businessTier: BusinessTierId;
-  };
 
 export const CATEGORIES: Category[] = [
   {
@@ -113,7 +107,7 @@ export const BUSINESS_TIERS: BusinessTier[] = [
   },
 ];
 
-const STATIC_RESOURCES: Resource[] = [
+export const STATIC_RESOURCES: Resource[] = [
   // ── BUSINESSES ─────────────────────────────────────────────────────────────
   {
     id: 'biz-bamboo',
@@ -2593,76 +2587,4 @@ const STATIC_RESOURCES: Resource[] = [
   },
 ];
 
-function normalizeResourceName(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/’/g, "'")
-    .replace(/\(a\.k\.a\..*?\)/gi, '')
-    .replace(/\bdpc\b/gi, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function hasMeaningfulText(value: string | undefined) {
-  return Boolean(value && value.trim() && !value.includes('to be confirmed'));
-}
-
-function mergeGeneratedBusinesses(
-  staticResources: Resource[],
-  generatedResources: GeneratedBusinessResource[],
-): Resource[] {
-  const merged: Resource[] = [...staticResources];
-  const staticBusinessIndex = new Map<string, number>();
-
-  merged.forEach((resource, index) => {
-    if (resource.category === 'business') {
-      staticBusinessIndex.set(normalizeResourceName(resource.name), index);
-    }
-  });
-
-  generatedResources.forEach((generated) => {
-    const key = normalizeResourceName(generated.name);
-    const existingIndex = staticBusinessIndex.get(key);
-
-    if (existingIndex !== undefined) {
-      const current = merged[existingIndex];
-      const next: Resource = {
-        ...current,
-        ...generated,
-        id: current.id,
-        address: hasMeaningfulText(generated.address) ? generated.address! : current.address,
-        neighborhood: hasMeaningfulText(generated.neighborhood) ? generated.neighborhood! : current.neighborhood,
-        description: hasMeaningfulText(generated.description) ? generated.description! : current.description,
-        website: generated.website ?? current.website,
-        phone: generated.phone ?? current.phone,
-        hours: generated.hours ?? current.hours,
-        tags: generated.tags && generated.tags.length > 0 ? generated.tags : current.tags,
-        impact: generated.impact ?? current.impact,
-      };
-
-      if (typeof generated.lat !== 'number' || typeof generated.lng !== 'number') {
-        next.lat = current.lat;
-        next.lng = current.lng;
-      }
-
-      merged[existingIndex] = next;
-      return;
-    }
-
-    merged.push({
-      id: generated.id ?? `biz-sheet-${key.replace(/\s+/g, '-')}`,
-      category: 'business',
-      address: generated.address ?? 'Address not provided in source sheet',
-      neighborhood: generated.neighborhood ?? 'Detroit area',
-      description:
-        generated.description ??
-        'Imported from the client-maintained business spreadsheet.',
-      tags: generated.tags ?? ['spreadsheet import'],
-      ...generated,
-    } as Resource);
-  });
-
-  return merged;
-}
-
-export const RESOURCES: Resource[] = mergeGeneratedBusinesses(STATIC_RESOURCES, GENERATED_BUSINESSES);
+export const RESOURCES: Resource[] = STATIC_RESOURCES;

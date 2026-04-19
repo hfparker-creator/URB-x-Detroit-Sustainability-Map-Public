@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Search, X, SlidersHorizontal, MapPin, ChevronDown, ChevronRight } from 'lucide-react';
 import { DetroitMap } from './components/DetroitMap';
 import { ResourceSidebar } from './components/ResourceSidebar';
@@ -7,7 +7,6 @@ import { ParkFinderSidebar } from './components/ParkFinderSidebar';
 import {
   BUSINESS_TIERS,
   CATEGORIES,
-  RESOURCES,
   BusinessTierId,
   CategoryId,
   hasMapCoordinates,
@@ -16,6 +15,7 @@ import {
   TransportSubtype,
 } from './data/sustainabilityResources';
 import { CATEGORY_ICONS } from './data/iconData';
+import { useGoogleSheetsResources } from './hooks/useGoogleSheetsResources';
 
 // Icons for each transport sub-type
 import { TramFront, TrainFront, Bike, Zap, Bus } from 'lucide-react';
@@ -49,6 +49,8 @@ const PARK_FINDER_TERMS = [
 ];
 
 export default function App() {
+  const { resources, loading } = useGoogleSheetsResources();
+
   const [activeCategories, setActiveCategories] = useState<CategoryId[]>(
     CATEGORIES.map((c) => c.id)
   );
@@ -58,11 +60,14 @@ export default function App() {
   const [activeBusinessTiers, setActiveBusinessTiers] = useState<BusinessTierId[]>(
     BUSINESS_TIERS.map((tier) => tier.id)
   );
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
-  const [searchQuery,      setSearchQuery]      = useState('');
-  const [showFilters,      setShowFilters]      = useState(false);
-  const [showList,         setShowList]         = useState(false);
-  const [subtypesExpanded, setSubtypesExpanded] = useState(true);
+  const [selectedResource,  setSelectedResource]  = useState<Resource | null>(null);
+  const [searchQuery,       setSearchQuery]       = useState('');
+  const [showFilters,       setShowFilters]       = useState(false);
+  const [showList,          setShowList]          = useState(false);
+  const [subtypesExpanded,  setSubtypesExpanded]  = useState(true);
+  const [showSuggestions,   setShowSuggestions]   = useState(false);
+  const [suggestionIndex,   setSuggestionIndex]   = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Category toggles ─────────────────────────────────────────────────────
   const toggleCategory = (id: CategoryId) => {
@@ -111,7 +116,7 @@ export default function App() {
   // ── Filtered resources (for the list view + stats bar) ───────────────────
   const filteredResources = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return RESOURCES.filter((r) => {
+    return resources.filter((r) => {
       if (!activeCategories.includes(r.category)) return false;
       if (r.category === 'business' && r.businessTier && !activeBusinessTiers.includes(r.businessTier)) {
         return false;
@@ -134,7 +139,53 @@ export default function App() {
       }
       return true;
     });
-  }, [activeBusinessTiers, activeCategories, activeTransportSubtypes, searchQuery]);
+  }, [resources, activeBusinessTiers, activeCategories, activeTransportSubtypes, searchQuery]);
+
+  // ── Search suggestions (top 6, name matches ranked first) ───────────────
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return resources
+      .filter((r) => {
+        return (
+          r.name.toLowerCase().includes(q) ||
+          r.neighborhood.toLowerCase().includes(q) ||
+          (r.description && r.description.toLowerCase().includes(q)) ||
+          r.tags.some((t) => t.toLowerCase().includes(q))
+        );
+      })
+      .sort((a, b) => {
+        const aName = a.name.toLowerCase().startsWith(q) ? 0 : 1;
+        const bName = b.name.toLowerCase().startsWith(q) ? 0 : 1;
+        return aName - bName;
+      })
+      .slice(0, 6);
+  }, [searchQuery, resources]);
+
+  const handleSelectSuggestion = useCallback((resource: Resource) => {
+    setSearchQuery(resource.name);
+    setShowSuggestions(false);
+    setSuggestionIndex(-1);
+    setSelectedResource(resource);
+    setShowList(false);
+  }, []);
+
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSuggestionIndex((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSuggestionIndex((i) => Math.max(i - 1, -1));
+    } else if (e.key === 'Enter' && suggestionIndex >= 0) {
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[suggestionIndex]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setSuggestionIndex(-1);
+    }
+  }, [showSuggestions, suggestions, suggestionIndex, handleSelectSuggestion]);
 
   const showParkFinderSidebar = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -146,27 +197,27 @@ export default function App() {
   // ── Counts ────────────────────────────────────────────────────────────────
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    RESOURCES.forEach((r) => { counts[r.category] = (counts[r.category] || 0) + 1; });
+    resources.forEach((r) => { counts[r.category] = (counts[r.category] || 0) + 1; });
     return counts;
-  }, []);
+  }, [resources]);
 
   const subtypeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     TRANSPORT_SUBTYPES.forEach((st) => {
-      counts[st.id] = RESOURCES.filter((r) => r.id.startsWith(st.idPrefix)).length;
+      counts[st.id] = resources.filter((r) => r.id.startsWith(st.idPrefix)).length;
     });
     return counts;
-  }, []);
+  }, [resources]);
 
   const businessTierCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     BUSINESS_TIERS.forEach((tier) => {
-      counts[tier.id] = RESOURCES.filter(
+      counts[tier.id] = resources.filter(
         (resource) => resource.category === 'business' && resource.businessTier === tier.id
       ).length;
     });
     return counts;
-  }, []);
+  }, [resources]);
 
   const handleSelectResource = (resource: Resource) => {
     setSelectedResource(resource);
@@ -203,71 +254,141 @@ export default function App() {
     <div className="fixed inset-0 flex flex-col civic-app-shell text-stone-900">
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="civic-topbar z-[1001] flex-shrink-0">
-        <div className="flex flex-wrap items-center gap-3 px-4 py-4 md:px-5">
+        <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 md:px-5">
           {/* Logo */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2.5 flex-shrink-0">
             <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
+              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm"
               style={{ background: 'linear-gradient(135deg, #0f766e, #164e63)' }}
             >
-              <MapPin size={16} className="text-white" />
+              <MapPin size={13} className="text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="civic-kicker">Urban Resource Atlas</p>
-              <p className="civic-title" style={{ fontSize: '24px', fontWeight: 700, color: '#1f2937', lineHeight: '1.05' }}>
+              <p className="civic-title" style={{ fontSize: '18px', fontWeight: 700, color: '#1f2937', lineHeight: '1.1' }}>
                 Detroit Sustainability Map
               </p>
-              <p className="civic-subtitle" style={{ fontSize: '12px', lineHeight: '1.3', maxWidth: 360 }}>
+              <p className="civic-subtitle" style={{ fontSize: '11px', lineHeight: '1.3', maxWidth: 360, marginTop: '4px' }}>
                 A curated view of businesses, public resources, transportation, and community infrastructure across Detroit.
               </p>
             </div>
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 min-w-[260px] max-w-xl">
-            <div className="civic-search rounded-2xl px-3 py-2">
-              <div className="flex items-center gap-3">
-                <Search size={15} className="text-stone-400 flex-shrink-0" />
+          <div
+            className="flex-1 min-w-[260px] max-w-xl relative"
+            ref={searchContainerRef}
+            onBlur={(e) => {
+              // Only hide if focus leaves the whole container (not just the input)
+              if (!searchContainerRef.current?.contains(e.relatedTarget as Node)) {
+                setShowSuggestions(false);
+                setSuggestionIndex(-1);
+              }
+            }}
+          >
+            <div className="civic-search rounded-xl px-2.5 py-1.5">
+              <div className="flex items-center gap-2">
+                <Search size={13} className="text-stone-400 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="civic-micro-label">Search the directory</p>
                   <input
                     type="text"
                     placeholder="Resources, neighborhoods, food access, transit..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                      setSuggestionIndex(-1);
+                    }}
+                    onFocus={() => {
+                      if (searchQuery) setShowSuggestions(true);
+                    }}
+                    onKeyDown={handleSearchKeyDown}
                     className="w-full bg-transparent outline-none text-stone-800 placeholder:text-stone-400"
-                    style={{ fontSize: '14px', fontWeight: 500 }}
+                    style={{ fontSize: '13px', fontWeight: 500 }}
+                    autoComplete="off"
                   />
                 </div>
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSuggestions(false);
+                      setSuggestionIndex(-1);
+                    }}
                     className="text-stone-400 hover:text-stone-600 flex-shrink-0"
                   >
-                    <X size={14} />
+                    <X size={13} />
                   </button>
                 )}
               </div>
             </div>
+
+            {/* Suggestions dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div
+                className="absolute left-0 right-0 top-full mt-1.5 z-[1002] overflow-hidden"
+                style={{
+                  borderRadius: '18px',
+                  background: 'rgba(255, 250, 243, 0.98)',
+                  border: '1px solid rgba(120, 99, 72, 0.14)',
+                  boxShadow: '0 12px 32px rgba(52, 38, 24, 0.16)',
+                }}
+              >
+                {suggestions.map((resource, idx) => {
+                  const cat  = CATEGORIES.find((c) => c.id === resource.category)!;
+                  const Icon = CATEGORY_ICONS[resource.category];
+                  const isHighlighted = idx === suggestionIndex;
+                  return (
+                    <button
+                      key={resource.id}
+                      tabIndex={0}
+                      onMouseDown={(e) => {
+                        // prevent onBlur from firing before onClick
+                        e.preventDefault();
+                        handleSelectSuggestion(resource);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors border-b last:border-b-0"
+                      style={{
+                        backgroundColor: isHighlighted ? cat.bgColor : 'transparent',
+                        borderColor: 'rgba(120, 99, 72, 0.08)',
+                      }}
+                    >
+                      <div
+                        className="flex-shrink-0 rounded-lg flex items-center justify-center"
+                        style={{ width: 26, height: 26, backgroundColor: cat.color }}
+                      >
+                        <Icon size={12} color="white" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate" style={{ fontSize: '13px', fontWeight: 600, color: '#111' }}>
+                          {resource.name}
+                        </p>
+                        <p className="truncate" style={{ fontSize: '11px', color: '#9ca3af' }}>
+                          {[resource.neighborhood, cat.label].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className={`civic-toolbar-button flex items-center gap-2 px-3.5 py-2.5 rounded-2xl transition-colors ${
-              showFilters
-                ? 'text-emerald-800'
-                : 'text-stone-700'
+            className={`civic-toolbar-button flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-colors ${
+              showFilters ? 'text-emerald-800' : 'text-stone-700'
             }`}
             style={{
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: 600,
               flexShrink: 0,
               borderColor: showFilters ? 'rgba(16, 109, 92, 0.38)' : undefined,
               background: showFilters ? 'rgba(221, 245, 239, 0.92)' : undefined,
             }}
           >
-            <SlidersHorizontal size={14} />
+            <SlidersHorizontal size={13} />
             <span className="hidden sm:inline">Filters</span>
             {filtersActive && (
               <span
@@ -282,13 +403,11 @@ export default function App() {
           {/* List Toggle */}
           <button
             onClick={() => setShowList((v) => !v)}
-            className={`civic-toolbar-button flex items-center gap-2 px-3.5 py-2.5 rounded-2xl transition-colors ${
-              showList
-                ? 'text-sky-800'
-                : 'text-stone-700'
+            className={`civic-toolbar-button flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-colors ${
+              showList ? 'text-sky-800' : 'text-stone-700'
             }`}
             style={{
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: 600,
               flexShrink: 0,
               borderColor: showList ? 'rgba(3, 105, 161, 0.34)' : undefined,
@@ -305,23 +424,23 @@ export default function App() {
 
         {/* ── Filter Panel ──────────────────────────────────────────────── */}
         {showFilters && (
-          <div className="px-4 pb-4 pt-2 md:px-5">
-            <div className="civic-panel rounded-[24px] px-4 py-4 space-y-4">
+          <div className="px-4 pb-3 pt-1 md:px-5">
+            <div className="civic-panel rounded-[20px] px-3 py-3 space-y-3">
             {/* Row 1: Categories */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <span className="civic-kicker">
                   Categories
                 </span>
                 <button
                   onClick={toggleAll}
                   className="text-emerald-700 hover:text-emerald-800"
-                  style={{ fontSize: '12px', fontWeight: 500 }}
+                  style={{ fontSize: '11px', fontWeight: 500 }}
                 >
                   {activeCategories.length === CATEGORIES.length ? 'Deselect all' : 'Select all'}
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map((cat) => {
                   const Icon     = CATEGORY_ICONS[cat.id];
                   const isActive = activeCategories.includes(cat.id);
@@ -329,16 +448,16 @@ export default function App() {
                     <button
                       key={cat.id}
                       onClick={() => toggleCategory(cat.id)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all shadow-sm"
+                      className="flex items-center gap-1 px-2 py-1 rounded-full border transition-all shadow-sm"
                       style={{
-                        fontSize: '12px', fontWeight: 500,
+                        fontSize: '11px', fontWeight: 500,
                         backgroundColor: isActive ? cat.bgColor : 'rgba(255, 250, 243, 0.88)',
                         borderColor:     isActive ? cat.color  : '#ddd6c7',
                         color:           isActive ? cat.color  : '#7c6f61',
                         opacity: isActive ? 1 : 0.8,
                       }}
                     >
-                      <Icon size={12} strokeWidth={2.5} />
+                      <Icon size={11} strokeWidth={2.5} />
                       <span>{cat.label}</span>
                       <span
                         className="rounded-full px-1"
@@ -358,10 +477,10 @@ export default function App() {
 
             {activeCategories.includes('business') && (
               <div
-                className="rounded-[20px] border overflow-hidden"
+                className="rounded-[16px] border overflow-hidden"
                 style={{ backgroundColor: '#f4f7f7', borderColor: '#d6e5e4' }}
               >
-                <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: '#d6e5e4' }}>
+                <div className="flex items-center justify-between px-3 py-1.5 border-b" style={{ borderColor: '#d6e5e4' }}>
                   <span className="civic-kicker" style={{ color: '#0f766e' }}>
                     Business Tiers
                   </span>
@@ -373,14 +492,14 @@ export default function App() {
                     {activeBusinessTiers.length === BUSINESS_TIERS.length ? 'Deselect all' : 'Select all'}
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2 px-3 py-3">
+                <div className="flex flex-wrap gap-1.5 px-3 py-2">
                   {BUSINESS_TIERS.map((tier) => {
                     const isActive = activeBusinessTiers.includes(tier.id);
                     return (
                       <button
                         key={tier.id}
                         onClick={() => toggleBusinessTier(tier.id)}
-                        className="min-w-[220px] flex-1 text-left px-3 py-2.5 rounded-xl border transition-all shadow-sm"
+                        className="min-w-[200px] flex-1 text-left px-2.5 py-2 rounded-xl border transition-all shadow-sm"
                         style={{
                           backgroundColor: isActive ? tier.bgColor : '#ffffff',
                           borderColor: isActive ? tier.color : '#d1d5db',
@@ -392,12 +511,12 @@ export default function App() {
                         title={tier.description}
                         aria-pressed={isActive}
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                               <span
                                 style={{
-                                  fontSize: '12px',
+                                  fontSize: '11px',
                                   fontWeight: 700,
                                   color: isActive ? tier.color : '#374151',
                                 }}
@@ -417,10 +536,10 @@ export default function App() {
                               </span>
                             </div>
                             <p
-                              className="mt-1"
+                              className="mt-0.5"
                               style={{
-                                fontSize: '11px',
-                                lineHeight: '1.45',
+                                fontSize: '10px',
+                                lineHeight: '1.4',
                                 color: isActive ? '#374151' : '#6b7280',
                               }}
                             >
@@ -428,11 +547,11 @@ export default function App() {
                             </p>
                           </div>
                           <div
-                            className="mt-0.5 h-4 w-4 rounded-full border flex-shrink-0"
+                            className="mt-0.5 h-3.5 w-3.5 rounded-full border flex-shrink-0"
                             style={{
                               borderColor: isActive ? tier.color : '#cbd5e1',
                               backgroundColor: isActive ? tier.color : 'transparent',
-                              boxShadow: isActive ? 'inset 0 0 0 3px white' : 'none',
+                              boxShadow: isActive ? 'inset 0 0 0 2px white' : 'none',
                             }}
                           />
                         </div>
@@ -446,7 +565,7 @@ export default function App() {
             {/* Row 2: Transport sub-types (only when Transportation is active) */}
             {activeCategories.includes('transportation') && (
               <div
-                className="rounded-[20px] border overflow-hidden"
+                className="rounded-[16px] border overflow-hidden"
                 style={{ backgroundColor: '#faf6ff', borderColor: '#e7daf8' }}
               >
                 {/* Sub-type header */}
@@ -455,20 +574,20 @@ export default function App() {
                   tabIndex={0}
                   onClick={() => setSubtypesExpanded((v) => !v)}
                   onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? setSubtypesExpanded((v) => !v) : undefined}
-                  className="w-full flex items-center justify-between px-3 py-2 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between px-3 py-1.5 transition-colors cursor-pointer"
                   style={{ backgroundColor: 'rgba(255,255,255,0.28)' }}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {subtypesExpanded
-                      ? <ChevronDown size={12} className="text-violet-400" />
-                      : <ChevronRight size={12} className="text-violet-400" />
+                      ? <ChevronDown size={11} className="text-violet-400" />
+                      : <ChevronRight size={11} className="text-violet-400" />
                     }
                     <span className="civic-kicker" style={{ color: '#7c3aed' }}>
                       Transportation Sub-types
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span style={{ fontSize: '11px', color: '#7c3aed' }}>
+                    <span style={{ fontSize: '10px', color: '#7c3aed' }}>
                       {activeTransportSubtypes.length}/{TRANSPORT_SUBTYPES.length} active
                     </span>
                     <button
@@ -483,7 +602,7 @@ export default function App() {
 
                 {/* Sub-type chips */}
                 {subtypesExpanded && (
-                  <div className="flex flex-wrap gap-2 px-3 pb-3">
+                  <div className="flex flex-wrap gap-1.5 px-3 pb-2">
                     {TRANSPORT_SUBTYPES.map((st) => {
                       const Icon     = SUBTYPE_ICONS[st.id];
                       const isActive = activeTransportSubtypes.includes(st.id);
@@ -491,16 +610,16 @@ export default function App() {
                         <button
                           key={st.id}
                           onClick={() => toggleSubtype(st.id)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all"
+                          className="flex items-center gap-1 px-2 py-1 rounded-full border transition-all"
                           style={{
-                            fontSize: '12px', fontWeight: 500,
+                            fontSize: '11px', fontWeight: 500,
                             backgroundColor: isActive ? st.bgColor : 'rgba(255, 255, 255, 0.82)',
                             borderColor:     isActive ? st.color  : '#ddd6c7',
                             color:           isActive ? st.color  : '#7c6f61',
                             opacity: isActive ? 1 : 0.82,
                           }}
                         >
-                          <Icon size={12} strokeWidth={2.5} />
+                          <Icon size={11} strokeWidth={2.5} />
                           <span>{st.label}</span>
                           <span
                             className="rounded-full px-1"
@@ -607,11 +726,25 @@ export default function App() {
       {/* ── Map Area ────────────────────────────────────────────────────── */}
       <div className="flex-1 relative overflow-hidden">
         <DetroitMap
+          resources={resources}
           activeCategories={activeCategories}
           activeTransportSubtypes={activeTransportSubtypes}
           selectedResource={selectedResource}
           onSelectResource={handleSelectResource}
         />
+
+        {/* Loading indicator while fetching from Google Sheets */}
+        {loading && (
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 px-4 py-2 rounded-2xl shadow-md"
+            style={{ background: 'rgba(255,250,243,0.96)', border: '1px solid #e5e7eb', fontSize: '13px', color: '#6b7280' }}
+          >
+            <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            Loading resources…
+          </div>
+        )}
 
         {/* Resource Sidebar */}
         {!showParkFinderSidebar && (
@@ -648,7 +781,7 @@ export default function App() {
             <div className="w-px h-8 bg-stone-200" />
             <div className="text-center">
               <p className="civic-title" style={{ fontSize: '23px', fontWeight: 700, color: '#0f3d56', lineHeight: '1' }}>
-                {RESOURCES.length}
+                {resources.length}
               </p>
               <p className="civic-micro-label">
                 Total
