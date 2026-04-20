@@ -83,3 +83,29 @@ The relevant pieces of code:
 ### Updating the Apps Script
 
 If the spreadsheet structure ever changes (e.g. a tab is renamed), the Google Apps Script will need to be updated to match. The script lives at **Extensions → Apps Script** inside the Google Sheet. The full script source is documented in `guidelines/spreadsheet-schema.md`.
+
+---
+
+## Adding this map to an existing website
+
+The map is a standalone web application that can be embedded into any existing webpage using a standard **iframe**, the same technique used for embedded maps and tools across government websites. No changes to the map's code are required.
+
+### Step 1 — Host the map publicly
+
+ The map needs to be deployed to a public URL before it can be embedded. This is a one-time setup handled by a developer:
+
+A developer runs `npm run build`, which produces a `dist/` folder of static files. That folder gets deployed to any hosting service, like the one hosting the existing website (or Netlify). The result is a permanent public URL.
+
+### Step 2 — Embed on a page
+
+A web editor or staff member adds the following snippet to any page on the existing site:
+
+```html
+<iframe
+  src="YOUR_PUBLIC_URL_HERE"
+  width="100%"
+  height="700"
+  style="border:none;"
+  title="Detroit Sustainability Map"
+  allowfullscreen>
+</iframe>
